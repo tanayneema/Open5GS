@@ -124,6 +124,7 @@ extern "C" {
 
 #define OGS_SBI_RESOURCE_NAME_UE_CONTEXTS           "ue-contexts"
 #define OGS_SBI_RESOURCE_NAME_N1_N2_MESSAGES        "n1-n2-messages"
+#define OGS_SBI_RESOURCE_NAME_TRANSFER              "transfer"
 
 #define OGS_SBI_RESOURCE_NAME_SM_CONTEXT_STATUS     "sm-context-status"
 #define OGS_SBI_RESOURCE_NAME_AM_POLICY_NOTIFY      "am-policy-notify"
@@ -314,6 +315,7 @@ extern "C" {
 #define OGS_SBI_PARAM_PLMN_ID                       "plmn-id"
 #define OGS_SBI_PARAM_SINGLE_NSSAI                  "single-nssai"
 #define OGS_SBI_PARAM_SNSSAI                        "snssai"
+#define OGS_SBI_PARAM_GUAMI                         "guami"
 #define OGS_SBI_PARAM_SLICE_INFO_REQUEST_FOR_PDU_SESSION \
         "slice-info-request-for-pdu-session"
 #define OGS_SBI_PARAM_IPV4ADDR                      "ipv4Addr"
@@ -403,6 +405,8 @@ typedef struct ogs_sbi_part_s {
 typedef struct ogs_sbi_discovery_option_s {
     char *target_nf_instance_id;
     char *requester_nf_instance_id;
+
+    ogs_guami_t *target_guami;
 
     int num_of_service_names;
     char *service_names[OGS_SBI_MAX_NUM_OF_SERVICE_TYPE];
@@ -511,6 +515,8 @@ typedef struct ogs_sbi_message_s {
     OpenAPI_sdm_subscription_t *SDMSubscription;
     OpenAPI_modification_notification_t *ModificationNotification;
     OpenAPI_smf_registration_t *SmfRegistration;
+    OpenAPI_ue_context_transfer_req_data_t *UeContextTransferReqData;
+    OpenAPI_ue_context_transfer_rsp_data_t *UeContextTransferRspData;
 
     ogs_sbi_links_t *links;
 

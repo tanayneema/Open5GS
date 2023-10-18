@@ -29,6 +29,7 @@ static OGS_POOL(xact_pool, ogs_sbi_xact_t);
 static OGS_POOL(subscription_spec_pool, ogs_sbi_subscription_spec_t);
 static OGS_POOL(subscription_data_pool, ogs_sbi_subscription_data_t);
 static OGS_POOL(smf_info_pool, ogs_sbi_smf_info_t);
+static OGS_POOL(amf_info_pool, ogs_sbi_amf_info_t);
 static OGS_POOL(nf_info_pool, ogs_sbi_nf_info_t);
 
 void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type)
@@ -61,6 +62,8 @@ void ogs_sbi_context_init(OpenAPI_nf_type_e nf_type)
     ogs_pool_init(&subscription_data_pool, ogs_app()->pool.subscription);
 
     ogs_pool_init(&smf_info_pool, ogs_app()->pool.nf);
+
+    ogs_pool_init(&amf_info_pool, ogs_app()->pool.nf);
 
     ogs_pool_init(&nf_info_pool, ogs_app()->pool.nf * OGS_MAX_NUM_OF_NF_INFO);
 
@@ -105,6 +108,7 @@ void ogs_sbi_context_final(void)
     ogs_pool_final(&nf_instance_pool);
     ogs_pool_final(&nf_service_pool);
     ogs_pool_final(&smf_info_pool);
+    ogs_pool_final(&amf_info_pool);
 
     ogs_pool_final(&nf_info_pool);
 
@@ -1239,7 +1243,13 @@ ogs_sbi_nf_info_t *ogs_sbi_nf_info_add(
 
 static void amf_info_free(ogs_sbi_amf_info_t *amf_info)
 {
-    /* Nothing */
+    ogs_assert(amf_info);
+
+    amf_info->num_of_guami = 0;
+    amf_info->num_of_nr_tai = 0;
+    amf_info->num_of_nr_tai_range = 0;
+
+    ogs_pool_free(&amf_info_pool, amf_info);
 }
 
 static void smf_info_free(ogs_sbi_smf_info_t *smf_info)
@@ -1547,6 +1557,9 @@ bool ogs_sbi_discovery_option_is_matched(
         OpenAPI_nf_type_e requester_nf_type,
         ogs_sbi_discovery_option_t *discovery_option)
 {
+    ogs_sbi_nf_info_t *node = NULL;
+    ogs_guami_t *nf_instance_guami = NULL;
+
     ogs_assert(nf_instance);
     ogs_assert(requester_nf_type);
     ogs_assert(discovery_option);
@@ -1554,6 +1567,31 @@ bool ogs_sbi_discovery_option_is_matched(
     if (discovery_option->target_nf_instance_id &&
         nf_instance->id && strcmp(nf_instance->id,
             discovery_option->target_nf_instance_id) != 0) {
+        return false;
+    }
+
+    if (discovery_option->target_guami &&
+        (requester_nf_type == OpenAPI_nf_type_AMF)) {
+        /* AMF is searching for AMF */
+
+        ogs_list_for_each(&nf_instance->nf_info_list, node) {
+            int i;
+            for (i = 0; i < node->amf.num_of_guami; i++) {
+                nf_instance_guami = &node->amf.guami[i];
+
+                if ((memcmp(&nf_instance_guami->amf_id,
+                        &discovery_option->target_guami->amf_id,
+                        sizeof(ogs_amf_id_t)) == 0) &&
+                    (memcmp(&nf_instance_guami->plmn_id,
+                        &discovery_option->target_guami->plmn_id,
+                        OGS_PLMN_ID_LEN) == 0)) {
+                    return true;
+                }
+            }
+        }
+
+        /* TODO - backup_info_amf_removal and backup_info_amf_failure */
+
         return false;
     }
 

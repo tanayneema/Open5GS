@@ -1678,7 +1678,7 @@ static void amf_namf_comm_decode_ue_session_context_list(
         sess = amf_sess_add(amf_ue, PduSessionContext->pdu_session_id);
         ogs_assert(sess);
 
-        sess->sm_context.ref = PduSessionContext->sm_context_ref;
+        sess->sm_context.ref = ogs_strdup(PduSessionContext->sm_context_ref);
 
         if (PduSessionContext->s_nssai) {
             memset(&sess->s_nssai, 0, sizeof(sess->s_nssai));
@@ -1700,10 +1700,9 @@ int amf_namf_comm_handle_ue_context_transfer_response(
 {
     OpenAPI_ue_context_t *UeContext = NULL;
 
-ogs_error("V funkciji amf_namf_comm_handle_ue_context_transfer_response");
-
     if (!recvmsg->UeContextTransferRspData) {
         ogs_error("No UeContextTransferRspData");
+        amf_ue->transfer_status = OpenAPI_ue_context_transfer_status_NOT_TRANSFERRED;
         return OGS_ERROR;
     }
 
@@ -1719,7 +1718,13 @@ ogs_error("V funkciji amf_namf_comm_handle_ue_context_transfer_response");
         if (!UeContext->supi_unauth_ind){
             amf_ue->auth_result = OpenAPI_auth_result_AUTHENTICATION_SUCCESS;
         }
+    } else {
+        ogs_warn("No SUPI in UE context");
+        amf_ue->transfer_status = OpenAPI_ue_context_transfer_status_NOT_TRANSFERRED;
+        return OGS_ERROR;
     }
+
+    amf_ue->transfer_status = OpenAPI_ue_context_transfer_status_TRANSFERRED;
 
     if (UeContext->pei) {
         if (amf_ue->pei)
@@ -1752,7 +1757,7 @@ ogs_error("V funkciji amf_namf_comm_handle_ue_context_transfer_response");
         ogs_nas_5gmm_capability_t gmm_capability;
 
         gmm_capability = amf_namf_comm_base64_decode_5gmm_capability(
-                    UeContext->_5g_mm_capability);
+                UeContext->_5g_mm_capability);
         amf_ue->gmm_capability.lte_positioning_protocol_capability =
                 (bool)gmm_capability.lte_positioning_protocol_capability;
         amf_ue->gmm_capability.ho_attach = (bool)gmm_capability.ho_attach;
@@ -1769,8 +1774,12 @@ ogs_error("V funkciji amf_namf_comm_handle_ue_context_transfer_response");
     if (UeContext->mm_context_list)
         amf_namf_comm_decode_ue_mm_context_list(amf_ue, UeContext->mm_context_list);
 
-    if (UeContext->session_context_list)
+    if (UeContext->session_context_list) {
         amf_namf_comm_decode_ue_session_context_list(amf_ue, UeContext->session_context_list);
+        /* Build a list of sessions to be released on old AMF */
+        if (UeContext->mm_context_list)
+            amf_ue_create_to_release_session_list(amf_ue);
+    }
 
     /* TODO ueRadioCapability */
 
@@ -1801,4 +1810,12 @@ static uint8_t gmm_cause_from_access_control(ogs_plmn_id_t *plmn_id)
         return amf_self()->default_reject_cause;
 
     return OGS_5GMM_CAUSE_PLMN_NOT_ALLOWED;
+}
+
+int amf_namf_comm_handle_registration_status_update_response(
+        ogs_sbi_message_t *recvmsg, amf_ue_t *amf_ue) {
+
+    /* Nothing to be done yet */
+
+    return OGS_OK;
 }

@@ -1039,7 +1039,7 @@ out:
         e = smf_event_new(SMF_EVT_GX_MESSAGE);
         ogs_assert(e);
 
-        e->sess = sess;
+        e->sess_id = sess->id;
         e->gx_message = gx_message;
         e->gtp_xact = xact;
         rv = ogs_queue_push(ogs_app()->queue, e);
@@ -1283,7 +1283,7 @@ static int smf_gx_rar_cb( struct msg **msg, struct avp *avp,
     e = smf_event_new(SMF_EVT_GX_MESSAGE);
     ogs_assert(e);
 
-    e->sess = sess;
+    e->sess_id = sess->id;
     e->gx_message = gx_message;
     rv = ogs_queue_push(ogs_app()->queue, e);
     if (rv != OGS_OK) {

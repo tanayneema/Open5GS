@@ -99,7 +99,7 @@ typedef struct smf_event_s {
         ogs_nas_5gs_message_t *message;
     } nas;
 
-    smf_sess_t *sess;
+    ogs_pool_id_t sess_id;
 } smf_event_t;
 
 OGS_STATIC_ASSERT(OGS_EVENT_SIZE >= sizeof(smf_event_t));

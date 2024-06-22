@@ -176,7 +176,7 @@ void smf_gsm_state_initial(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -360,7 +360,7 @@ void smf_gsm_state_wait_epc_auth_initial(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -473,7 +473,7 @@ void smf_gsm_state_wait_5gc_sm_policy_association(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -625,7 +625,7 @@ void smf_gsm_state_wait_pfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -775,7 +775,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -1329,7 +1329,7 @@ void smf_gsm_state_wait_pfcp_deletion(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -1538,7 +1538,7 @@ void smf_gsm_state_wait_epc_auth_release(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -1665,7 +1665,7 @@ void smf_gsm_state_wait_5gc_n1_n2_release(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -1918,7 +1918,7 @@ void smf_gsm_state_5gc_n1_n2_reject(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -2036,7 +2036,7 @@ void smf_gsm_state_5gc_session_will_deregister(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -2104,7 +2104,7 @@ void smf_gsm_state_epc_session_will_release(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
 
     switch (e->h.id) {
@@ -2131,7 +2131,7 @@ void smf_gsm_state_exception(ogs_fsm_t *s, smf_event_t *e)
 
     smf_sm_debug(e);
 
-    sess = e->sess;
+    sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
     smf_ue = sess->smf_ue;
     ogs_assert(smf_ue);

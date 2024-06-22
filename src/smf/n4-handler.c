@@ -267,8 +267,7 @@ void smf_5gc_n4_handle_session_modification_response(
 
     } else {
         /* If smf_5gc_pfcp_send_qos_flow_modification_request() is called */
-        qos_flow = xact->data;
-        ogs_assert(qos_flow);
+        qos_flow = smf_qos_flow_find_by_id(OGS_POINTER_TO_UINT(xact->data));
     }
 
     ogs_list_copy(&pdr_to_create_list, &xact->pdr_to_create_list);
@@ -857,8 +856,7 @@ void smf_epc_n4_handle_session_modification_response(
         /* If smf_epc_pfcp_send_pdr_modification_request() is called */
     } else {
         /* If smf_epc_pfcp_send_bearer_modification_request() is called */
-        bearer = xact->data;
-        ogs_assert(bearer);
+        bearer = smf_bearer_find_by_id(OGS_POINTER_TO_UINT(xact->data));
     }
     flags = xact->modify_flags;
     ogs_assert(flags);

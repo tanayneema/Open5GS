@@ -222,7 +222,7 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
     ogs_assert(xact);
     ogs_assert(data);
 
-    sess = smf_sess_cycle(data);
+    sess = smf_sess_find_by_id(OGS_POINTER_TO_UINT(data));
     if (!sess) {
         ogs_warn("Session has already been removed");
         return;
@@ -242,7 +242,7 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
 
         e = smf_event_new(SMF_EVT_N4_TIMER);
         ogs_assert(e);
-        e->sess = sess;
+        e->sess_id = sess->id;
         e->h.timer_id = SMF_TIMER_PFCP_NO_ESTABLISHMENT_RESPONSE;
         e->pfcp_node = sess->pfcp_node;
 
@@ -301,7 +301,7 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
            removal from pfcp-sm state machine. */
         e = smf_event_new(SMF_EVT_N4_TIMER);
         ogs_assert(e);
-        e->sess = sess;
+        e->sess_id = sess->id;
         e->h.timer_id = SMF_TIMER_PFCP_NO_DELETION_RESPONSE;
         e->pfcp_node = sess->pfcp_node;
 
@@ -410,7 +410,9 @@ int smf_5gc_pfcp_send_session_establishment_request(
 
     ogs_assert(sess);
 
-    xact = ogs_pfcp_xact_local_create(sess->pfcp_node, sess_5gc_timeout, sess);
+    xact = ogs_pfcp_xact_local_create(
+            sess->pfcp_node, sess_5gc_timeout,
+            OGS_UINT_TO_POINTER(sess->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;
@@ -483,7 +485,9 @@ int smf_5gc_pfcp_send_all_pdr_modification_request(
     if ((flags & OGS_PFCP_MODIFY_ERROR_INDICATION) == 0)
         ogs_assert(stream);
 
-    xact = ogs_pfcp_xact_local_create(sess->pfcp_node, sess_5gc_timeout, sess);
+    xact = ogs_pfcp_xact_local_create(
+            sess->pfcp_node, sess_5gc_timeout,
+            OGS_UINT_TO_POINTER(sess->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;
@@ -518,7 +522,9 @@ int smf_5gc_pfcp_send_qos_flow_list_modification_request(
 
     ogs_assert(sess);
 
-    xact = ogs_pfcp_xact_local_create(sess->pfcp_node, sess_5gc_timeout, sess);
+    xact = ogs_pfcp_xact_local_create(
+            sess->pfcp_node, sess_5gc_timeout,
+            OGS_UINT_TO_POINTER(sess->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;
@@ -551,7 +557,9 @@ int smf_5gc_pfcp_send_session_deletion_request(
     ogs_assert(sess);
     ogs_assert(trigger);
 
-    xact = ogs_pfcp_xact_local_create(sess->pfcp_node, sess_5gc_timeout, sess);
+    xact = ogs_pfcp_xact_local_create(
+            sess->pfcp_node, sess_5gc_timeout,
+            OGS_UINT_TO_POINTER(sess->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;
@@ -598,7 +606,9 @@ int smf_epc_pfcp_send_session_establishment_request(
 
     ogs_assert(sess);
 
-    xact = ogs_pfcp_xact_local_create(sess->pfcp_node, sess_epc_timeout, sess);
+    xact = ogs_pfcp_xact_local_create(
+            sess->pfcp_node, sess_epc_timeout,
+            OGS_UINT_TO_POINTER(sess->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;
@@ -671,7 +681,9 @@ int smf_epc_pfcp_send_all_pdr_modification_request(
 
     ogs_assert(sess);
 
-    xact = ogs_pfcp_xact_local_create(sess->pfcp_node, sess_epc_timeout, sess);
+    xact = ogs_pfcp_xact_local_create(
+            sess->pfcp_node, sess_epc_timeout,
+            OGS_UINT_TO_POINTER(sess->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;
@@ -716,7 +728,8 @@ int smf_epc_pfcp_send_one_bearer_modification_request(
     ogs_assert(sess);
 
     xact = ogs_pfcp_xact_local_create(
-            sess->pfcp_node, bearer_epc_timeout, bearer);
+            sess->pfcp_node, bearer_epc_timeout,
+            OGS_UINT_TO_POINTER(bearer->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;
@@ -750,7 +763,9 @@ int smf_epc_pfcp_send_session_deletion_request(
 
     ogs_assert(sess);
 
-    xact = ogs_pfcp_xact_local_create(sess->pfcp_node, sess_epc_timeout, sess);
+    xact = ogs_pfcp_xact_local_create(
+            sess->pfcp_node, sess_epc_timeout,
+            OGS_UINT_TO_POINTER(sess->id));
     if (!xact) {
         ogs_error("ogs_pfcp_xact_local_create() failed");
         return OGS_ERROR;

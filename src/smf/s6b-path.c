@@ -442,7 +442,7 @@ static void smf_s6b_aaa_cb(void *data, struct msg **msg)
     if (error && s6b_message->result_code == ER_DIAMETER_SUCCESS)
             s6b_message->result_code = error;
 
-    e->sess = sess;
+    e->sess_id = sess->id;
     e->gtp_xact = xact;
     e->s6b_message = s6b_message;
     ret = ogs_queue_push(ogs_app()->queue, e);
@@ -666,6 +666,7 @@ static void smf_s6b_sta_cb(void *data, struct msg **msg)
     ogs_debug("    Retrieve its data: [%s]", sess_data->s6b_sid);
 
     sess = sess_data->sess;
+    ogs_assert(sess);
 
     s6b_message = ogs_calloc(1, sizeof(ogs_diam_s6b_message_t));
     ogs_assert(s6b_message);
@@ -736,7 +737,7 @@ static void smf_s6b_sta_cb(void *data, struct msg **msg)
         e = smf_event_new(SMF_EVT_S6B_MESSAGE);
         ogs_assert(e);
 
-        e->sess = sess;
+        e->sess_id = sess->id;
         e->s6b_message = s6b_message;
         rv = ogs_queue_push(ogs_app()->queue, e);
         if (rv != OGS_OK) {

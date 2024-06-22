@@ -1175,7 +1175,7 @@ out:
         e = smf_event_new(SMF_EVT_GY_MESSAGE);
         ogs_assert(e);
 
-        e->sess = sess;
+        e->sess_id = sess->id;
         e->gy_message = gy_message;
         if (gy_message->cc_request_type == OGS_DIAM_GY_CC_REQUEST_TYPE_UPDATE_REQUEST) {
             ogs_assert(sess_data->xact_data[req_slot].pfcp == true);
@@ -1311,7 +1311,7 @@ static int smf_gy_rar_cb( struct msg **msg, struct avp *avp,
     e = smf_event_new(SMF_EVT_GY_MESSAGE);
     ogs_assert(e);
 
-    e->sess = sess;
+    e->sess_id = sess->id;
     e->gy_message = gy_message;
     rv = ogs_queue_push(ogs_app()->queue, e);
     if (rv != OGS_OK) {

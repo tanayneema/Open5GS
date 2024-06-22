@@ -1003,13 +1003,12 @@ static smf_ue_t *smf_ue_add(void)
 {
     smf_ue_t *smf_ue = NULL;
 
-    ogs_pool_alloc(&smf_ue_pool, &smf_ue);
+    ogs_pool_id_calloc(&smf_ue_pool, &smf_ue);
     if (!smf_ue) {
         ogs_error("Maximum number of smf_ue[%lld] reached",
                     (long long)ogs_global_conf()->max.ue);
         return NULL;
     }
-    memset(smf_ue, 0, sizeof *smf_ue);
 
     ogs_list_init(&smf_ue->sess_list);
 
@@ -1074,7 +1073,7 @@ void smf_ue_remove(smf_ue_t *smf_ue)
         ogs_hash_set(self.imsi_hash, smf_ue->imsi, smf_ue->imsi_len, NULL);
     }
 
-    ogs_pool_free(&smf_ue_pool, smf_ue);
+    ogs_pool_id_free(&smf_ue_pool, smf_ue);
 
     smf_metrics_inst_global_dec(SMF_METR_GLOB_GAUGE_UES_ACTIVE);
     ogs_info("[Removed] Number of SMF-UEs is now %d",
@@ -1200,13 +1199,12 @@ smf_sess_t *smf_sess_add_by_apn(smf_ue_t *smf_ue, char *apn, uint8_t rat_type)
     ogs_assert(smf_ue);
     ogs_assert(apn);
 
-    ogs_pool_alloc(&smf_sess_pool, &sess);
+    ogs_pool_id_calloc(&smf_sess_pool, &sess);
     if (!sess) {
         ogs_error("Maximum number of session[%lld] reached",
                     (long long)ogs_app()->pool.sess);
         return NULL;
     }
-    memset(sess, 0, sizeof *sess);
 
     ogs_pfcp_pool_init(&sess->pfcp);
     smf_qfi_pool_init(sess);
@@ -1243,7 +1241,7 @@ smf_sess_t *smf_sess_add_by_apn(smf_ue_t *smf_ue, char *apn, uint8_t rat_type)
     sess->epc = true;
 
     memset(&e, 0, sizeof(e));
-    e.sess = sess;
+    e.sess_id = sess->id;
     ogs_fsm_init(&sess->sm, smf_gsm_state_initial, smf_gsm_state_final, &e);
 
     sess->smf_ue = smf_ue;
@@ -1412,13 +1410,12 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
     ogs_assert(smf_ue);
     ogs_assert(psi != OGS_NAS_PDU_SESSION_IDENTITY_UNASSIGNED);
 
-    ogs_pool_alloc(&smf_sess_pool, &sess);
+    ogs_pool_id_calloc(&smf_sess_pool, &sess);
     if (!sess) {
         ogs_error("Maximum number of session[%lld] reached",
             (long long)ogs_app()->pool.sess);
         return NULL;
     }
-    memset(sess, 0, sizeof *sess);
 
     /* SBI Features */
     OGS_SBI_FEATURES_SET(sess->smpolicycontrol_features,
@@ -1461,7 +1458,7 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
     sess->charging.id = sess->index;
 
     memset(&e, 0, sizeof(e));
-    e.sess = sess;
+    e.sess_id = sess->id;
     ogs_fsm_init(&sess->sm, smf_gsm_state_initial, smf_gsm_state_final, &e);
 
     sess->smf_ue = smf_ue;
@@ -1687,7 +1684,7 @@ void smf_sess_remove(smf_sess_t *sess)
     ogs_list_remove(&smf_ue->sess_list, sess);
 
     memset(&e, 0, sizeof(e));
-    e.sess = sess;
+    e.sess_id = sess->id;
     ogs_fsm_fini(&sess->sm, &e);
 
     OGS_TLV_CLEAR_DATA(&sess->gtp.ue_pco);
@@ -1799,7 +1796,7 @@ void smf_sess_remove(smf_sess_t *sess)
     stats_remove_smf_session(sess);
 
     ogs_pool_free(&smf_n4_seid_pool, sess->smf_n4_seid_node);
-    ogs_pool_free(&smf_sess_pool, sess);
+    ogs_pool_id_free(&smf_sess_pool, sess);
 }
 
 void smf_sess_remove_all(smf_ue_t *smf_ue)
@@ -1923,9 +1920,8 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
 
     ogs_assert(sess);
 
-    ogs_pool_alloc(&smf_bearer_pool, &qos_flow);
+    ogs_pool_id_calloc(&smf_bearer_pool, &qos_flow);
     ogs_assert(qos_flow);
-    memset(qos_flow, 0, sizeof *qos_flow);
 
     smf_pf_identifier_pool_init(qos_flow);
 
@@ -2364,9 +2360,8 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
 
     ogs_assert(sess);
 
-    ogs_pool_alloc(&smf_bearer_pool, &bearer);
+    ogs_pool_id_calloc(&smf_bearer_pool, &bearer);
     ogs_assert(bearer);
-    memset(bearer, 0, sizeof *bearer);
 
     smf_pf_identifier_pool_init(bearer);
 
@@ -2479,7 +2474,7 @@ int smf_bearer_remove(smf_bearer_t *bearer)
     if (SMF_IS_QOF_FLOW(bearer))
         ogs_pool_free(&bearer->sess->qfi_pool, bearer->qfi_node);
 
-    ogs_pool_free(&smf_bearer_pool, bearer);
+    ogs_pool_id_free(&smf_bearer_pool, bearer);
 
     smf_metrics_inst_global_dec(SMF_METR_GLOB_GAUGE_BEARERS_ACTIVE);
     return OGS_OK;
@@ -2649,9 +2644,14 @@ smf_ue_t *smf_ue_cycle(smf_ue_t *smf_ue)
     return ogs_pool_cycle(&smf_ue_pool, smf_ue);
 }
 
-smf_sess_t *smf_sess_cycle(smf_sess_t *sess)
+smf_ue_t *smf_ue_find_by_id(ogs_pool_id_t id)
 {
-    return ogs_pool_cycle(&smf_sess_pool, sess);
+    return ogs_pool_find_by_id(&smf_ue_pool, id);
+}
+
+smf_sess_t *smf_sess_find_by_id(ogs_pool_id_t id)
+{
+    return ogs_pool_find_by_id(&smf_sess_pool, id);
 }
 
 smf_bearer_t *smf_bearer_cycle(smf_bearer_t *bearer)
@@ -2659,9 +2659,19 @@ smf_bearer_t *smf_bearer_cycle(smf_bearer_t *bearer)
     return ogs_pool_cycle(&smf_bearer_pool, bearer);
 }
 
+smf_bearer_t *smf_bearer_find_by_id(ogs_pool_id_t id)
+{
+    return ogs_pool_find_by_id(&smf_bearer_pool, id);
+}
+
 smf_bearer_t *smf_qos_flow_cycle(smf_bearer_t *qos_flow)
 {
     return ogs_pool_cycle(&smf_bearer_pool, qos_flow);
+}
+
+smf_bearer_t *smf_qos_flow_find_by_id(ogs_pool_id_t id)
+{
+    return ogs_pool_find_by_id(&smf_bearer_pool, id);
 }
 
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer)

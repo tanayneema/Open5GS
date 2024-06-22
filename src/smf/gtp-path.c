@@ -384,7 +384,8 @@ int smf_gtp1_send_update_pdp_context_request(
     }
 
     xact = ogs_gtp1_xact_local_create(
-            sess->gnode, &h, pkbuf, bearer_timeout, bearer);
+            sess->gnode, &h, pkbuf, bearer_timeout,
+            OGS_UINT_TO_POINTER(bearer->id));
     if (!xact) {
         ogs_error("ogs_gtp1_xact_local_create() failed");
         return OGS_ERROR;
@@ -561,7 +562,8 @@ int smf_gtp2_send_delete_bearer_request(
     }
 
     xact = ogs_gtp_xact_local_create(
-            sess->gnode, &h, pkbuf, bearer_timeout, bearer);
+            sess->gnode, &h, pkbuf, bearer_timeout,
+            OGS_UINT_TO_POINTER(bearer->id));
     if (!xact) {
         ogs_error("ogs_gtp_xact_local_create() failed");
         return OGS_ERROR;
@@ -730,18 +732,29 @@ static void send_router_advertisement(smf_sess_t *sess, uint8_t *ip6_dst)
 
 static void bearer_timeout(ogs_gtp_xact_t *xact, void *data)
 {
-    smf_bearer_t *bearer = data;
+    smf_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     smf_sess_t *sess = NULL;
     smf_ue_t *smf_ue = NULL;
     uint8_t type = 0;
 
-    ogs_assert(bearer);
+    ogs_assert(xact);
+    type = xact->seq[0].type;
+
+    ogs_assert(data);
+    bearer_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
+
+    bearer = smf_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed [%d]", type);
+        return;
+    }
+
     sess = bearer->sess;
     ogs_assert(sess);
     smf_ue = sess->smf_ue;
     ogs_assert(smf_ue);
-
-    type = xact->seq[0].type;
 
     switch (type) {
     case OGS_GTP2_DELETE_BEARER_REQUEST_TYPE:

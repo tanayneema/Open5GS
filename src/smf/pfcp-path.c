@@ -210,6 +210,7 @@ void smf_pfcp_close(void)
 
 static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
 {
+    ogs_pool_id_t sess_id = OGS_INVALID_POOL_ID;
     smf_ue_t *smf_ue = NULL;
     smf_sess_t *sess = NULL;
     ogs_sbi_stream_t *stream = NULL;
@@ -222,19 +223,22 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
     ogs_assert(xact);
     ogs_assert(data);
 
-    sess = smf_sess_find_by_id(OGS_POINTER_TO_UINT(data));
-    if (!sess) {
-        ogs_warn("Session has already been removed");
-        return;
-    }
-    smf_ue = sess->smf_ue;
-    ogs_assert(smf_ue);
-
     if (xact->assoc_stream_id >= OGS_MIN_POOL_ID &&
             xact->assoc_stream_id <= OGS_MAX_POOL_ID)
         stream = ogs_sbi_stream_find_by_id(xact->assoc_stream_id);
 
     type = xact->seq[0].type;
+
+    sess_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(sess_id >= OGS_MIN_POOL_ID && sess_id <= OGS_MAX_POOL_ID);
+
+    sess = smf_sess_find_by_id(sess_id);
+    if (!sess) {
+        ogs_error("Session has already been removed [%d]", type);
+        return;
+    }
+    smf_ue = sess->smf_ue;
+    ogs_assert(smf_ue);
 
     switch (type) {
     case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
@@ -319,10 +323,22 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
 
 static void sess_epc_timeout(ogs_pfcp_xact_t *xact, void *data)
 {
+    ogs_pool_id_t sess_id = OGS_INVALID_POOL_ID;
+    smf_sess_t *sess = NULL;
     uint8_t type;
 
     ogs_assert(xact);
     type = xact->seq[0].type;
+
+    ogs_assert(data);
+    sess_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(sess_id >= OGS_MIN_POOL_ID && sess_id <= OGS_MAX_POOL_ID);
+
+    sess = smf_sess_find_by_id(sess_id);
+    if (!sess) {
+        ogs_error("Session has already been removed [%d]", type);
+        return;
+    }
 
     switch (type) {
     case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
@@ -342,10 +358,22 @@ static void sess_epc_timeout(ogs_pfcp_xact_t *xact, void *data)
 
 static void bearer_epc_timeout(ogs_pfcp_xact_t *xact, void *data)
 {
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
+    smf_bearer_t *bearer = NULL;
     uint8_t type;
 
     ogs_assert(xact);
     type = xact->seq[0].type;
+
+    ogs_assert(data);
+    bearer_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
+
+    bearer = smf_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed [%d]", type);
+        return;
+    }
 
     switch (type) {
     case OGS_PFCP_SESSION_MODIFICATION_REQUEST_TYPE:

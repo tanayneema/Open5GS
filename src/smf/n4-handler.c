@@ -1003,7 +1003,7 @@ void smf_epc_n4_handle_session_modification_response(
          *
          * To do this, I saved Bearer Context in Transaction Context.
          */
-            gtp_xact->data = bearer;
+            gtp_xact->data = OGS_UINT_TO_POINTER(bearer->id);
 
             rv = ogs_gtp_xact_commit(gtp_xact);
             ogs_expect(rv == OGS_OK);
@@ -1057,9 +1057,15 @@ void smf_epc_n4_handle_session_modification_response(
 
             /* SMF send Update PDP Context Response (GTPv1C) to SGSN */
             if (gtp_xact->gtp_version == 1) {
+                ogs_pool_id_t bearer_id = OGS_POINTER_TO_UINT(gtp_xact->data);
 
-                bearer = gtp_xact->data;
-                smf_gtp1_send_update_pdp_context_response(bearer, gtp_xact);
+                ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+                        bearer_id <= OGS_MAX_POOL_ID);
+                bearer = smf_bearer_find_by_id(bearer_id);
+                if (bearer)
+                    smf_gtp1_send_update_pdp_context_response(bearer, gtp_xact);
+                else
+                    ogs_error("Bearer has already been removed");
 
             } else {
 

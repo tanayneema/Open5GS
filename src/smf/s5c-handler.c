@@ -674,6 +674,7 @@ void smf_s5c_handle_create_bearer_response(
     ogs_gtp2_cause_t *cause = NULL;
     ogs_gtp2_f_teid_t *sgw_s5u_teid = NULL, *pgw_s5u_teid = NULL;
     smf_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     ogs_pfcp_far_t *dl_far = NULL;
 
     ogs_assert(sess);
@@ -685,11 +686,21 @@ void smf_s5c_handle_create_bearer_response(
      * Check Transaction
      ********************/
     ogs_assert(xact);
-    bearer = xact->data;
-    ogs_assert(bearer);
+
+    bearer_id = OGS_POINTER_TO_UINT(xact->data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
+
+    /********************
+     * Check ALL Context
+     ********************/
+    bearer = smf_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed");
+        return;
+    }
 
     /************************
      * Check Session Context
@@ -849,6 +860,7 @@ void smf_s5c_handle_update_bearer_response(
     uint64_t gtp_flags = 0;
     uint64_t pfcp_flags = 0;
     smf_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
 
     ogs_assert(sess);
     ogs_assert(rsp);
@@ -861,8 +873,9 @@ void smf_s5c_handle_update_bearer_response(
     ogs_assert(xact);
     gtp_flags = xact->update_flags;
     ogs_assert(gtp_flags);
-    bearer = xact->data;
-    ogs_assert(bearer);
+
+    bearer_id = OGS_POINTER_TO_UINT(xact->data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
@@ -918,8 +931,11 @@ void smf_s5c_handle_update_bearer_response(
     /********************
      * Check ALL Context
      ********************/
-    ogs_assert(sess);
-    ogs_assert(bearer);
+    bearer = smf_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed");
+        return;
+    }
 
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_N4_TEID[0x%x]",
             sess->sgw_s5c_teid, sess->smf_n4_teid);
@@ -953,6 +969,7 @@ bool smf_s5c_handle_delete_bearer_response(
     int rv;
     uint8_t cause_value;
     smf_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
 
     ogs_assert(sess);
     ogs_assert(rsp);
@@ -963,16 +980,19 @@ bool smf_s5c_handle_delete_bearer_response(
      * Check Transaction
      ********************/
     ogs_assert(xact);
-    bearer = xact->data;
-    ogs_assert(bearer);
+
+    bearer_id = OGS_POINTER_TO_UINT(xact->data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
 
     rv = ogs_gtp_xact_commit(xact);
     ogs_expect(rv == OGS_OK);
 
-    /********************
-     * Check ALL Context
-     ********************/
-    ogs_assert(bearer);
+    bearer = smf_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed");
+        /* Release entire session: */
+        return true;
+    }
 
     if (rsp->linked_eps_bearer_id.presence) {
         /*
@@ -1483,7 +1503,7 @@ void smf_s5c_handle_bearer_resource_command(
          *
          * To do this, I saved Bearer Context in Transaction Context.
          */
-        xact->data = bearer;
+        xact->data = OGS_UINT_TO_POINTER(bearer->id);
 
         rv = ogs_gtp_xact_commit(xact);
         ogs_expect(rv == OGS_OK);

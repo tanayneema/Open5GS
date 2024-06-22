@@ -31,7 +31,7 @@ struct sess_state {
 
 #define NUM_CC_REQUEST_SLOT 4
 
-    smf_sess_t *sess;
+    ogs_pool_id_t sess_id;
     struct {
         uint32_t cc_req_no;
         bool pfcp;
@@ -713,7 +713,7 @@ void smf_gy_send_ccr(smf_sess_t *sess, void *xact,
         sess_data->cc_request_type, sess_data->cc_request_number);
 
     /* Update session state */
-    sess_data->sess = sess;
+    sess_data->sess_id = sess->id;
     req_slot = sess_data->cc_request_number % NUM_CC_REQUEST_SLOT;
     if (cc_request_type == OGS_DIAM_GY_CC_REQUEST_TYPE_UPDATE_REQUEST)
         sess_data->xact_data[req_slot].pfcp = true;
@@ -1009,7 +1009,7 @@ static void smf_gy_cca_cb(void *data, struct msg **msg)
 
     xact = sess_data->xact_data[req_slot].ptr;
     ogs_assert(sess_data->xact_data[req_slot].cc_req_no == cc_request_number);
-    sess = sess_data->sess;
+    sess = smf_sess_find_by_id(sess_data->sess_id);
     ogs_assert(sess);
 
     gy_message = ogs_calloc(1, sizeof(ogs_diam_gy_message_t));
@@ -1302,7 +1302,7 @@ static int smf_gy_rar_cb( struct msg **msg, struct avp *avp,
     }
 
     /* Get Session Information */
-    sess = sess_data->sess;
+    sess = smf_sess_find_by_id(sess_data->sess_id);
     ogs_assert(sess);
 
     /* TODO: parsing of msg into gy_message */

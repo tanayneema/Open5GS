@@ -29,7 +29,7 @@ struct sess_state {
     os0_t       peer_host;          /* Peer Host */
 
 #define NUM_CC_REQUEST_SLOT 4
-    smf_sess_t *sess;
+    ogs_pool_id_t sess_id;
     struct {
         uint32_t cc_req_no;
         ogs_gtp_xact_t *ptr;
@@ -198,7 +198,7 @@ void smf_gx_send_ccr(smf_sess_t *sess, ogs_gtp_xact_t *xact,
         sess_data->cc_request_type, sess_data->cc_request_number);
 
     /* Update session state */
-    sess_data->sess = sess;
+    sess_data->sess_id = sess->id;
     req_slot = sess_data->cc_request_number % NUM_CC_REQUEST_SLOT;
     sess_data->xact_data[req_slot].ptr = xact;
     sess_data->xact_data[req_slot].cc_req_no = sess_data->cc_request_number;
@@ -768,7 +768,7 @@ static void smf_gx_cca_cb(void *data, struct msg **msg)
     ogs_debug("    CC-Request-Number[%d]", cc_request_number);
 
     xact = sess_data->xact_data[req_slot].ptr;
-    sess = sess_data->sess;
+    sess = smf_sess_find_by_id(sess_data->sess_id);
     ogs_assert(sess_data->xact_data[req_slot].cc_req_no == cc_request_number);
     ogs_assert(sess);
 
@@ -1166,7 +1166,7 @@ static int smf_gx_rar_cb( struct msg **msg, struct avp *avp,
     }
 
     /* Get Session Information */
-    sess = sess_data->sess;
+    sess = smf_sess_find_by_id(sess_data->sess_id);
     ogs_assert(sess);
 
     ret = fd_msg_browse(qry, MSG_BRW_FIRST_CHILD, &avp, NULL);

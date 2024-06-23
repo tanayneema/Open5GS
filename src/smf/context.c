@@ -2661,6 +2661,11 @@ smf_bearer_t *smf_qos_flow_find_by_id(ogs_pool_id_t id)
     return ogs_pool_find_by_id(&smf_bearer_pool, id);
 }
 
+smf_pf_t *smf_pf_find_by_id(ogs_pool_id_t id)
+{
+    return ogs_pool_find_by_id(&smf_pf_pool, id);
+}
+
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer)
 {
     smf_sess_t *sess = NULL;
@@ -2670,14 +2675,13 @@ smf_pf_t *smf_pf_add(smf_bearer_t *bearer)
     sess = smf_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
-    ogs_pool_alloc(&smf_pf_pool, &pf);
+    ogs_pool_id_calloc(&smf_pf_pool, &pf);
     ogs_assert(pf);
-    memset(pf, 0, sizeof *pf);
 
     ogs_pool_alloc(&bearer->pf_identifier_pool, &pf->identifier_node);
     if (!pf->identifier_node) {
         ogs_error("smf_pf_add: Expectation `pf->identifier_node' failed");
-        ogs_pool_free(&smf_pf_pool, pf);
+        ogs_pool_id_free(&smf_pf_pool, pf);
         return NULL;
     }
 
@@ -2689,7 +2693,7 @@ smf_pf_t *smf_pf_add(smf_bearer_t *bearer)
     if (!pf->precedence_node) {
         ogs_error("smf_pf_add: Expectation `pf->precedence_node' failed");
         ogs_pool_free(&bearer->pf_identifier_pool, pf->identifier_node);
-        ogs_pool_free(&smf_pf_pool, pf);
+        ogs_pool_id_free(&smf_pf_pool, pf);
         return NULL;
     }
 
@@ -2700,7 +2704,7 @@ smf_pf_t *smf_pf_add(smf_bearer_t *bearer)
     /* Re-use 'pf_precedence_pool' to generate SDF Filter ID */
     pf->sdf_filter_id = *(pf->precedence_node);
 
-    pf->bearer = bearer;
+    pf->bearer_id = bearer->id;
 
     ogs_list_add(&bearer->pf_list, pf);
 
@@ -2710,22 +2714,25 @@ smf_pf_t *smf_pf_add(smf_bearer_t *bearer)
 int smf_pf_remove(smf_pf_t *pf)
 {
     smf_sess_t *sess = NULL;
+    smf_bearer_t *bearer = NULL;
+
     ogs_assert(pf);
-    ogs_assert(pf->bearer);
-    sess = smf_sess_find_by_id(pf->bearer->sess_id);
+    bearer = smf_bearer_find_by_id(pf->bearer_id);
+    ogs_assert(bearer);
+    sess = smf_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
-    ogs_list_remove(&pf->bearer->pf_list, pf);
+    ogs_list_remove(&bearer->pf_list, pf);
     if (pf->flow_description)
         ogs_free(pf->flow_description);
 
     if (pf->identifier_node)
-        ogs_pool_free(&pf->bearer->pf_identifier_pool, pf->identifier_node);
+        ogs_pool_free(&bearer->pf_identifier_pool, pf->identifier_node);
     if (pf->precedence_node)
         ogs_pool_free(
                 &sess->pf_precedence_pool, pf->precedence_node);
 
-    ogs_pool_free(&smf_pf_pool, pf);
+    ogs_pool_id_free(&smf_pf_pool, pf);
 
     return OGS_OK;
 }

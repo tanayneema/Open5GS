@@ -156,6 +156,8 @@ typedef struct smf_pf_s {
     ogs_lnode_t     lnode;
     ogs_lnode_t     to_add_node;
 
+    ogs_pool_id_t   id;
+
 ED3(uint8_t spare:2;,
     uint8_t direction:2;,
     uint8_t identifier:4;)
@@ -170,7 +172,7 @@ ED3(uint8_t spare:2;,
     ogs_ipfw_rule_t ipfw_rule;
     char *flow_description;
 
-    smf_bearer_t    *bearer;
+    ogs_pool_id_t bearer_id;
 } smf_pf_t;
 
 typedef struct smf_bearer_s {
@@ -551,6 +553,7 @@ smf_ue_t *smf_ue_find_by_id(ogs_pool_id_t id);
 smf_sess_t *smf_sess_find_by_id(ogs_pool_id_t id);
 smf_bearer_t *smf_bearer_find_by_id(ogs_pool_id_t id);
 smf_bearer_t *smf_qos_flow_find_by_id(ogs_pool_id_t id);
+smf_pf_t *smf_pf_find_by_id(ogs_pool_id_t id);
 
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer);
 int smf_pf_remove(smf_pf_t *pf);

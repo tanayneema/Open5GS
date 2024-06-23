@@ -136,6 +136,7 @@ void ogs_pfcp_xact_final(void);
 ogs_pfcp_xact_t *ogs_pfcp_xact_local_create(ogs_pfcp_node_t *node,
         void (*cb)(ogs_pfcp_xact_t *xact, void *data), void *data);
 void ogs_pfcp_xact_delete_all(ogs_pfcp_node_t *node);
+ogs_pfcp_xact_t *ogs_pfcp_xact_find_by_id(ogs_pool_id_t id);
 
 int ogs_pfcp_xact_update_tx(ogs_pfcp_xact_t *xact,
         ogs_pfcp_header_t *hdesc, ogs_pkbuf_t *pkbuf);

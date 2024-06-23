@@ -91,7 +91,7 @@ void sgwc_s5c_handle_create_session_response(
      * Check Transaction
      ********************/
     ogs_assert(s5c_xact);
-    s11_xact = s5c_xact->assoc_xact;
+    s11_xact = ogs_gtp_xact_find_by_id(s5c_xact->assoc_xact_id);
     ogs_assert(s11_xact);
 
     rv = ogs_gtp_xact_commit(s5c_xact);
@@ -309,7 +309,7 @@ void sgwc_s5c_handle_modify_bearer_response(
      * Check Transaction
      ********************/
     ogs_assert(s5c_xact);
-    s11_xact = s5c_xact->assoc_xact;
+    s11_xact = ogs_gtp_xact_find_by_id(s5c_xact->assoc_xact_id);
     ogs_assert(s11_xact);
     modify_action = s5c_xact->modify_action;
 
@@ -450,7 +450,7 @@ void sgwc_s5c_handle_delete_session_response(
      * Check Transaction
      ********************/
     ogs_assert(s5c_xact);
-    s11_xact = s5c_xact->assoc_xact;
+    s11_xact = ogs_gtp_xact_find_by_id(s5c_xact->assoc_xact_id);
     ogs_assert(s11_xact);
 
     rv = ogs_gtp_xact_commit(s5c_xact);
@@ -725,7 +725,7 @@ void sgwc_s5c_handle_update_bearer_request(
         return;
     }
 
-    s11_xact = s5c_xact->assoc_xact;
+    s11_xact = ogs_gtp_xact_find_by_id(s5c_xact->assoc_xact_id);
     if (!s11_xact) {
         s11_xact = ogs_gtp_xact_local_create(
                 sgwc_ue->gnode, &message->h, pkbuf, bearer_timeout, bearer);
@@ -866,7 +866,7 @@ void sgwc_s5c_handle_delete_bearer_request(
         return;
     }
 
-    s11_xact = s5c_xact->assoc_xact;
+    s11_xact = ogs_gtp_xact_find_by_id(s5c_xact->assoc_xact_id);
     if (!s11_xact) {
        /*
         * 1. SMF sends Delete Bearer Request(DEFAULT BEARER) to SGW/MME.
@@ -929,7 +929,7 @@ void sgwc_s5c_handle_bearer_resource_failure_indication(
      * Check Transaction
      ********************/
     ogs_assert(s5c_xact);
-    s11_xact = s5c_xact->assoc_xact;
+    s11_xact = ogs_gtp_xact_find_by_id(s5c_xact->assoc_xact_id);
     ogs_assert(s11_xact);
 
     /************************

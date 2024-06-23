@@ -715,7 +715,7 @@ void sgwc_s11_handle_create_bearer_response(
      * Check Transaction
      ********************/
     ogs_assert(s11_xact);
-    s5c_xact = s11_xact->assoc_xact;
+    s5c_xact = ogs_gtp_xact_find_by_id(s11_xact->assoc_xact_id);
     ogs_assert(s5c_xact);
 
     if (s11_xact->xid & OGS_GTP_CMD_XACT_ID)
@@ -895,7 +895,7 @@ void sgwc_s11_handle_update_bearer_response(
      * Check Transaction
      ********************/
     ogs_assert(s11_xact);
-    s5c_xact = s11_xact->assoc_xact;
+    s5c_xact = ogs_gtp_xact_find_by_id(s11_xact->assoc_xact_id);
     ogs_assert(s5c_xact);
 
     if (s11_xact->xid & OGS_GTP_CMD_XACT_ID)
@@ -1018,7 +1018,7 @@ void sgwc_s11_handle_delete_bearer_response(
      * Check Transaction
      ********************/
     ogs_assert(s11_xact);
-    s5c_xact = s11_xact->assoc_xact;
+    s5c_xact = ogs_gtp_xact_find_by_id(s11_xact->assoc_xact_id);
     ogs_assert(s5c_xact);
 
     if (s11_xact->xid & OGS_GTP_CMD_XACT_ID)

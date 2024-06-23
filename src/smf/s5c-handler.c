@@ -178,7 +178,7 @@ uint8_t smf_s5c_handle_create_session_request(
     if (cause_value != OGS_GTP2_CAUSE_REQUEST_ACCEPTED)
         return cause_value;
 
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     /* Set MSISDN: */
@@ -532,7 +532,7 @@ void smf_s5c_handle_modify_bearer_request(
      * Check ALL Context
      ********************/
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     /* Control Plane(DL) : SGW-S5C */

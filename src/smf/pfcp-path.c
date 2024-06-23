@@ -237,7 +237,7 @@ static void sess_5gc_timeout(ogs_pfcp_xact_t *xact, void *data)
         ogs_error("Session has already been removed [%d]", type);
         return;
     }
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     switch (type) {
@@ -752,7 +752,7 @@ int smf_epc_pfcp_send_one_bearer_modification_request(
     smf_sess_t *sess = NULL;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = smf_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     xact = ogs_pfcp_xact_local_create(
@@ -854,7 +854,7 @@ int smf_epc_pfcp_send_deactivation(smf_sess_t *sess, uint8_t gtp_cause)
     smf_sess_t *eutran_sess = NULL, *wlan_sess = NULL;
 
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     switch (gtp_cause) {

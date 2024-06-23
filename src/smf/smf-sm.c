@@ -580,7 +580,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 END
 
                 if (sess) {
-                    smf_ue = sess->smf_ue;
+                    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
                     ogs_assert(smf_ue);
                     ogs_assert(OGS_FSM_STATE(&sess->sm));
 
@@ -842,7 +842,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 ogs_error("Session has already been removed");
                 break;
             }
-            smf_ue = smf_ue_cycle(sess->smf_ue);
+            smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
             ogs_assert(smf_ue);
             ogs_assert(OGS_FSM_STATE(&sess->sm));
 
@@ -887,7 +887,7 @@ void smf_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 ogs_error("Session has already been removed");
                 break;
             }
-            smf_ue = smf_ue_cycle(sess->smf_ue);
+            smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
             ogs_assert(smf_ue);
 
             if (state == SMF_UECM_STATE_REGISTERED) {

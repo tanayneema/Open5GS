@@ -118,7 +118,7 @@ uint8_t smf_gn_handle_create_pdp_context_request(
     if (cause_value != OGS_GTP1_CAUSE_REQUEST_ACCEPTED)
         return cause_value;
 
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     /* Store NSAPI */
@@ -383,7 +383,7 @@ void smf_gn_handle_update_pdp_context_request(
     }
 
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     ogs_debug("    SGW_S5C_TEID[0x%x] SMF_N4_TEID[0x%x]",

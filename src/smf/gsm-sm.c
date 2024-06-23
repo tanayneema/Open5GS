@@ -297,7 +297,7 @@ void smf_gsm_state_initial(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_5GSM_MESSAGE:
         nas_message = e->nas.message;
         ogs_assert(nas_message);
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         stream_id = OGS_POINTER_TO_UINT(e->h.sbi.data);
@@ -486,7 +486,7 @@ void smf_gsm_state_wait_5gc_sm_policy_association(ogs_fsm_t *s, smf_event_t *e)
         sbi_message = e->h.sbi.message;
         ogs_assert(sbi_message);
 
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         SWITCH(sbi_message->h.service.name)
@@ -946,7 +946,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         sbi_message = e->h.sbi.message;
         ogs_assert(sbi_message);
 
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         SWITCH(sbi_message->h.service.name)
@@ -1098,7 +1098,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_5GSM_MESSAGE:
         nas_message = e->nas.message;
         ogs_assert(nas_message);
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         stream_id = OGS_POINTER_TO_UINT(e->h.sbi.data);
@@ -1172,7 +1172,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
         break;
 
     case SMF_EVT_NGAP_MESSAGE:
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
         pkbuf = e->pkbuf;
         ogs_assert(pkbuf);
@@ -1486,7 +1486,7 @@ void smf_gsm_state_wait_pfcp_deletion(ogs_fsm_t *s, smf_event_t *e)
         sbi_message = e->h.sbi.message;
         ogs_assert(sbi_message);
 
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         SWITCH(sbi_message->h.service.name)
@@ -1724,7 +1724,7 @@ void smf_gsm_state_wait_5gc_n1_n2_release(ogs_fsm_t *s, smf_event_t *e)
         sbi_message = e->h.sbi.message;
         ogs_assert(sbi_message);
 
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         SWITCH(sbi_message->h.service.name)
@@ -1779,7 +1779,7 @@ void smf_gsm_state_wait_5gc_n1_n2_release(ogs_fsm_t *s, smf_event_t *e)
         break;
 
     case SMF_EVT_NGAP_MESSAGE:
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
         pkbuf = e->pkbuf;
         ogs_assert(pkbuf);
@@ -1861,7 +1861,7 @@ void smf_gsm_state_wait_5gc_n1_n2_release(ogs_fsm_t *s, smf_event_t *e)
     case SMF_EVT_5GSM_MESSAGE:
         nas_message = e->nas.message;
         ogs_assert(nas_message);
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         stream_id = OGS_POINTER_TO_UINT(e->h.sbi.data);
@@ -1949,7 +1949,7 @@ void smf_gsm_state_5gc_n1_n2_reject(ogs_fsm_t *s, smf_event_t *e)
         sbi_message = e->h.sbi.message;
         ogs_assert(sbi_message);
 
-        smf_ue = sess->smf_ue;
+        smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
         ogs_assert(smf_ue);
 
         SWITCH(sbi_message->h.service.name)
@@ -2133,7 +2133,7 @@ void smf_gsm_state_exception(ogs_fsm_t *s, smf_event_t *e)
 
     sess = smf_sess_find_by_id(e->sess_id);
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     switch (e->h.id) {

@@ -345,6 +345,12 @@ static void fill_ps_information(smf_sess_t *sess, uint32_t cc_request_type,
     char buf[OGS_PLMNIDSTRLEN];
     char digit;
 
+    smf_ue_t *smf_ue = NULL;
+
+    ogs_assert(sess);
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
+    ogs_assert(smf_ue);
+
     /* PS-Information, TS 32.299 sec 7.2.158 */
     ret = fd_msg_avp_new(ogs_diam_gy_ps_information, 0, &avpch1);
     ogs_assert(ret == 0);
@@ -555,7 +561,7 @@ static void fill_ps_information(smf_sess_t *sess, uint32_t cc_request_type,
     ret = fd_msg_avp_add(avpch1, MSG_BRW_LAST_CHILD, avpch2);
     ogs_assert(ret == 0);
 
-    if (sess->smf_ue->imeisv_len > 0) {
+    if (smf_ue->imeisv_len > 0) {
         /* User-Equipment-Info, 3GPP TS 32.299 7.1.17 */
         ret = fd_msg_avp_new(ogs_diam_gy_user_equipment_info, 0, &avpch2);
 
@@ -572,7 +578,7 @@ static void fill_ps_information(smf_sess_t *sess, uint32_t cc_request_type,
         ret = fd_msg_avp_new(ogs_diam_gy_user_equipment_info_value, 0, &avpch3);
         ogs_assert(ret == 0);
         digit = '0';
-        val.os.data = (uint8_t*)&sess->smf_ue->imeisv_bcd[0];
+        val.os.data = (uint8_t*)&smf_ue->imeisv_bcd[0];
         val.os.len = 16;
         ret = fd_msg_avp_setvalue(avpch3, &val);
         ogs_assert(ret == 0);
@@ -630,7 +636,7 @@ void smf_gy_send_ccr(smf_sess_t *sess, void *xact,
     ogs_assert(sess);
 
     ogs_assert(sess->ipv4 || sess->ipv6);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     ogs_debug("[Gy][Credit-Control-Request]");

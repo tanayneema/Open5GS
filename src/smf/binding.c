@@ -45,18 +45,14 @@ static void gtp_bearer_timeout(ogs_gtp_xact_t *xact, void *data)
         return;
     }
 
-    sess = bearer->sess;
+    sess = smf_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     switch (type) {
     case OGS_GTP2_CREATE_BEARER_REQUEST_TYPE:
         ogs_error("[%s] No Create Bearer Response", smf_ue->imsi_bcd);
-        if (!smf_bearer_cycle(bearer)) {
-            ogs_warn("[%s] Bearer has already been removed", smf_ue->imsi_bcd);
-            break;
-        }
         ogs_assert(OGS_OK ==
             smf_epc_pfcp_send_one_bearer_modification_request(
                 bearer, NULL, OGS_PFCP_MODIFY_REMOVE,
@@ -447,7 +443,7 @@ int smf_gtp2_send_create_bearer_request(smf_bearer_t *bearer)
     ogs_gtp2_tft_t tft;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = smf_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     h.type = OGS_GTP2_CREATE_BEARER_REQUEST_TYPE;

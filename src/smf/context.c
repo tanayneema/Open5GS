@@ -1244,7 +1244,7 @@ smf_sess_t *smf_sess_add_by_apn(smf_ue_t *smf_ue, char *apn, uint8_t rat_type)
     e.sess_id = sess->id;
     ogs_fsm_init(&sess->sm, smf_gsm_state_initial, smf_gsm_state_final, &e);
 
-    sess->smf_ue = smf_ue;
+    sess->smf_ue_id = smf_ue->id;
 
     ogs_list_add(&smf_ue->sess_list, sess);
 
@@ -1461,7 +1461,7 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
     e.sess_id = sess->id;
     ogs_fsm_init(&sess->sm, smf_gsm_state_initial, smf_gsm_state_final, &e);
 
-    sess->smf_ue = smf_ue;
+    sess->smf_ue_id = smf_ue->id;
 
     ogs_list_add(&smf_ue->sess_list, sess);
 
@@ -1525,7 +1525,7 @@ uint8_t smf_sess_set_ue_ip(smf_sess_t *sess)
     uint8_t cause_value = OGS_PFCP_CAUSE_REQUEST_ACCEPTED;
 
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4V6) {
@@ -1672,7 +1672,7 @@ void smf_sess_remove(smf_sess_t *sess)
     char buf2[OGS_ADDRSTRLEN];
 
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     ogs_info("Removed Session: UE IMSI:[%s] DNN:[%s:%d] IPv4:[%s] IPv6:[%s]",
@@ -2018,7 +2018,7 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
 
     qos_flow->qfi = ul_pdr->qfi = qer->qfi = *(qos_flow->qfi_node);
 
-    qos_flow->sess = sess;
+    qos_flow->sess_id = sess->id;
 
     ogs_list_add(&sess->bearer_list, qos_flow);
     smf_metrics_inst_by_5qi_add(&sess->serving_plmn_id, &sess->s_nssai,
@@ -2430,7 +2430,7 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
 
     ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
 
-    bearer->sess = sess;
+    bearer->sess_id = sess->id;
 
     ogs_list_add(&sess->bearer_list, bearer);
 
@@ -2440,10 +2440,12 @@ smf_bearer_t *smf_bearer_add(smf_sess_t *sess)
 
 int smf_bearer_remove(smf_bearer_t *bearer)
 {
+    smf_sess_t *sess = NULL;
     ogs_assert(bearer);
-    ogs_assert(bearer->sess);
+    sess = smf_sess_find_by_id(bearer->sess_id);
+    ogs_assert(sess);
 
-    ogs_list_remove(&bearer->sess->bearer_list, bearer);
+    ogs_list_remove(&sess->bearer_list, bearer);
 
     ogs_assert(bearer->dl_pdr);
     ogs_pfcp_pdr_remove(bearer->dl_pdr);
@@ -2472,7 +2474,7 @@ int smf_bearer_remove(smf_bearer_t *bearer)
     smf_pf_identifier_pool_final(bearer);
 
     if (SMF_IS_QOF_FLOW(bearer))
-        ogs_pool_free(&bearer->sess->qfi_pool, bearer->qfi_node);
+        ogs_pool_free(&sess->qfi_pool, bearer->qfi_node);
 
     ogs_pool_id_free(&smf_bearer_pool, bearer);
 
@@ -2609,7 +2611,7 @@ void smf_bearer_qos_update(smf_bearer_t *bearer)
     ogs_pfcp_qer_t *qer = NULL;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = smf_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     dl_pdr = bearer->dl_pdr;
@@ -2639,11 +2641,6 @@ smf_bearer_t *smf_default_bearer_in_sess(smf_sess_t *sess)
     return ogs_list_first(&sess->bearer_list);
 }
 
-smf_ue_t *smf_ue_cycle(smf_ue_t *smf_ue)
-{
-    return ogs_pool_cycle(&smf_ue_pool, smf_ue);
-}
-
 smf_ue_t *smf_ue_find_by_id(ogs_pool_id_t id)
 {
     return ogs_pool_find_by_id(&smf_ue_pool, id);
@@ -2654,19 +2651,9 @@ smf_sess_t *smf_sess_find_by_id(ogs_pool_id_t id)
     return ogs_pool_find_by_id(&smf_sess_pool, id);
 }
 
-smf_bearer_t *smf_bearer_cycle(smf_bearer_t *bearer)
-{
-    return ogs_pool_cycle(&smf_bearer_pool, bearer);
-}
-
 smf_bearer_t *smf_bearer_find_by_id(ogs_pool_id_t id)
 {
     return ogs_pool_find_by_id(&smf_bearer_pool, id);
-}
-
-smf_bearer_t *smf_qos_flow_cycle(smf_bearer_t *qos_flow)
-{
-    return ogs_pool_cycle(&smf_bearer_pool, qos_flow);
 }
 
 smf_bearer_t *smf_qos_flow_find_by_id(ogs_pool_id_t id)
@@ -2680,7 +2667,7 @@ smf_pf_t *smf_pf_add(smf_bearer_t *bearer)
     smf_pf_t *pf = NULL;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = smf_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     ogs_pool_alloc(&smf_pf_pool, &pf);
@@ -2722,9 +2709,11 @@ smf_pf_t *smf_pf_add(smf_bearer_t *bearer)
 
 int smf_pf_remove(smf_pf_t *pf)
 {
+    smf_sess_t *sess = NULL;
     ogs_assert(pf);
     ogs_assert(pf->bearer);
-    ogs_assert(pf->bearer->sess);
+    sess = smf_sess_find_by_id(pf->bearer->sess_id);
+    ogs_assert(sess);
 
     ogs_list_remove(&pf->bearer->pf_list, pf);
     if (pf->flow_description)
@@ -2734,7 +2723,7 @@ int smf_pf_remove(smf_pf_t *pf)
         ogs_pool_free(&pf->bearer->pf_identifier_pool, pf->identifier_node);
     if (pf->precedence_node)
         ogs_pool_free(
-                &pf->bearer->sess->pf_precedence_pool, pf->precedence_node);
+                &sess->pf_precedence_pool, pf->precedence_node);
 
     ogs_pool_free(&smf_pf_pool, pf);
 

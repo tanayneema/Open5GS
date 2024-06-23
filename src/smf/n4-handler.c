@@ -495,10 +495,12 @@ void smf_5gc_n4_handle_session_modification_response(
 
             ogs_list_for_each_entry_safe(&sess->qos_flow_to_modify_list,
                     next, qos_flow, to_modify_node) {
+                smf_sess_t *sess = smf_sess_find_by_id(qos_flow->sess_id);
+                ogs_assert(sess);
                 smf_metrics_inst_by_5qi_add(
-                        &qos_flow->sess->serving_plmn_id,
-                        &qos_flow->sess->s_nssai,
-                        qos_flow->sess->session.qos.index,
+                        &sess->serving_plmn_id,
+                        &sess->s_nssai,
+                        sess->session.qos.index,
                         SMF_METR_GAUGE_SM_QOSFLOWNBR, -1);
                 smf_bearer_remove(qos_flow);
             }
@@ -527,10 +529,12 @@ void smf_5gc_n4_handle_session_modification_response(
 
             ogs_list_for_each_entry_safe(&sess->qos_flow_to_modify_list,
                     next, qos_flow, to_modify_node) {
+                smf_sess_t *sess = smf_sess_find_by_id(qos_flow->sess_id);
+                ogs_assert(sess);
                 smf_metrics_inst_by_5qi_add(
-                        &qos_flow->sess->serving_plmn_id,
-                        &qos_flow->sess->s_nssai,
-                        qos_flow->sess->session.qos.index,
+                        &sess->serving_plmn_id,
+                        &sess->s_nssai,
+                        sess->session.qos.index,
                         SMF_METR_GAUGE_SM_QOSFLOWNBR, -1);
                 smf_bearer_remove(qos_flow);
             }
@@ -1197,7 +1201,7 @@ uint8_t smf_n4_handle_session_report_request(
     }
 
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
 
     report_type.value = pfcp_req->report_type.u8;

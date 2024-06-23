@@ -139,7 +139,7 @@ typedef struct smf_ue_s {
     do { \
         smf_ue_t *smf_ue = NULL; \
         ogs_assert(__sESS); \
-        smf_ue = (__sESS)->smf_ue; \
+        smf_ue = smf_ue_find_by_id((__sESS)->smf_ue_id); \
         ogs_assert(smf_ue); \
         smf_metrics_inst_by_slice_add(&(__sESS)->serving_plmn_id, \
                 &(__sESS)->s_nssai, SMF_METR_GAUGE_SM_SESSIONNBR, -1); \
@@ -214,7 +214,7 @@ typedef struct smf_bearer_s {
     uint8_t num_of_pf_to_delete;
     uint8_t pf_to_delete[OGS_MAX_NUM_OF_FLOW_IN_NAS];
 
-    smf_sess_t      *sess;
+    ogs_pool_id_t   sess_id;
 } smf_bearer_t;
 
 #define SMF_SESS(pfcp_sess) ogs_container_of(pfcp_sess, smf_sess_t, pfcp)
@@ -467,7 +467,7 @@ typedef struct smf_sess_s {
     ogs_gtp_node_t  *gnode;
     ogs_pfcp_node_t *pfcp_node;
 
-    smf_ue_t *smf_ue;
+    ogs_pool_id_t smf_ue_id;
 
     bool n1_released;
     bool n2_released;
@@ -547,12 +547,9 @@ smf_bearer_t *smf_default_bearer_in_sess(smf_sess_t *sess);
 void smf_bearer_tft_update(smf_bearer_t *bearer);
 void smf_bearer_qos_update(smf_bearer_t *bearer);
 
-smf_ue_t *smf_ue_cycle(smf_ue_t *smf_ue);
 smf_ue_t *smf_ue_find_by_id(ogs_pool_id_t id);
 smf_sess_t *smf_sess_find_by_id(ogs_pool_id_t id);
-smf_bearer_t *smf_qos_flow_cycle(smf_bearer_t *qos_flow);
 smf_bearer_t *smf_bearer_find_by_id(ogs_pool_id_t id);
-smf_bearer_t *smf_bearer_cycle(smf_bearer_t *bearer);
 smf_bearer_t *smf_qos_flow_find_by_id(ogs_pool_id_t id);
 
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer);

@@ -212,7 +212,7 @@ int gsm_handle_pdu_session_modification_request(
     ogs_pkbuf_t *n1smbuf = NULL;
 
     ogs_assert(sess);
-    smf_ue = sess->smf_ue;
+    smf_ue = smf_ue_find_by_id(sess->smf_ue_id);
     ogs_assert(smf_ue);
     ogs_assert(stream);
     ogs_assert(pdu_session_modification_request);

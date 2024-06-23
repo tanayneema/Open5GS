@@ -75,9 +75,8 @@ ogs_pfcp_xact_t *ogs_pfcp_xact_local_create(ogs_pfcp_node_t *node,
 
     ogs_assert(node);
 
-    ogs_pool_alloc(&pool, &xact);
+    ogs_pool_id_calloc(&pool, &xact);
     ogs_assert(xact);
-    memset(xact, 0, sizeof *xact);
     xact->index = ogs_pool_index(&pool, xact);
 
     xact->org = OGS_PFCP_LOCAL_ORIGINATOR;
@@ -124,9 +123,8 @@ static ogs_pfcp_xact_t *ogs_pfcp_xact_remote_create(
 
     ogs_assert(node);
 
-    ogs_pool_alloc(&pool, &xact);
+    ogs_pool_id_calloc(&pool, &xact);
     ogs_assert(xact);
-    memset(xact, 0, sizeof *xact);
     xact->index = ogs_pool_index(&pool, xact);
 
     xact->org = OGS_PFCP_REMOTE_ORIGINATOR;
@@ -802,7 +800,7 @@ int ogs_pfcp_xact_delete(ogs_pfcp_xact_t *xact)
 
     ogs_list_remove(xact->org == OGS_PFCP_LOCAL_ORIGINATOR ?
             &xact->node->local_list : &xact->node->remote_list, xact);
-    ogs_pool_free(&pool, xact);
+    ogs_pool_id_free(&pool, xact);
 
     return OGS_OK;
 }

@@ -558,7 +558,8 @@ smf_pf_t *smf_pf_find_by_id(ogs_pool_id_t id);
 smf_pf_t *smf_pf_add(smf_bearer_t *bearer);
 int smf_pf_remove(smf_pf_t *pf);
 void smf_pf_remove_all(smf_bearer_t *bearer);
-smf_pf_t *smf_pf_find_by_id(smf_bearer_t *smf_bearer, uint8_t id);
+smf_pf_t *smf_pf_find_by_identifier(
+        smf_bearer_t *bearer, uint8_t identifier);
 smf_pf_t *smf_pf_find_by_flow(
     smf_bearer_t *bearer, uint8_t direction, char *flow_description);
 smf_pf_t *smf_pf_first(smf_bearer_t *bearer);

@@ -256,7 +256,7 @@ int gsm_handle_pdu_session_modification_request(
                 for (j = 0; j < qos_rule[i].num_of_packet_filter &&
                             j < OGS_MAX_NUM_OF_FLOW_IN_NAS; j++) {
 
-                    pf = smf_pf_find_by_id(
+                    pf = smf_pf_find_by_identifier(
                             qos_flow, qos_rule[i].pf[j].identifier+1);
                     if (pf) {
                         ogs_assert(
@@ -328,7 +328,7 @@ int gsm_handle_pdu_session_modification_request(
                 for (j = 0; j < qos_rule[i].num_of_packet_filter &&
                             j < OGS_MAX_NUM_OF_FLOW_IN_NAS; j++) {
 
-                    pf = smf_pf_find_by_id(
+                    pf = smf_pf_find_by_identifier(
                             qos_flow, qos_rule[i].pf[j].identifier+1);
                     if (!pf)
                         pf = smf_pf_add(qos_flow);
@@ -405,7 +405,7 @@ int gsm_handle_pdu_session_modification_request(
                 for (j = 0; j < qos_rule[i].num_of_packet_filter &&
                             j < OGS_MAX_NUM_OF_FLOW_IN_NAS; j++) {
 
-                    pf = smf_pf_find_by_id(
+                    pf = smf_pf_find_by_identifier(
                             qos_flow, qos_rule[i].pf[j].identifier+1);
                     if (pf) {
                         qos_flow->pf_to_delete

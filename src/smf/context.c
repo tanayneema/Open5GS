@@ -2746,12 +2746,13 @@ void smf_pf_remove_all(smf_bearer_t *bearer)
         smf_pf_remove(pf);
 }
 
-smf_pf_t *smf_pf_find_by_id(smf_bearer_t *bearer, uint8_t id)
+smf_pf_t *smf_pf_find_by_identifier(
+        smf_bearer_t *bearer, uint8_t identifier)
 {
     smf_pf_t *pf = NULL;
 
     ogs_list_for_each(&bearer->pf_list, pf) {
-        if (pf->identifier == id) return pf;
+        if (pf->identifier == identifier) return pf;
     }
 
     return NULL;

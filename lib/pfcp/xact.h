@@ -35,6 +35,8 @@ typedef struct ogs_pfcp_xact_s {
     ogs_lnode_t     lnode;          /**< A node of list */
     ogs_lnode_t     tmpnode;        /**< A node of temp-list */
 
+    ogs_pool_id_t   id;
+
     ogs_pool_id_t   index;
 
 #define OGS_PFCP_LOCAL_ORIGINATOR  0

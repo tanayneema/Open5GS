@@ -159,7 +159,6 @@ sgwc_sess_t *sgwc_sess_find_by_seid(uint64_t seid);
 
 sgwc_sess_t *sgwc_sess_find_by_apn(sgwc_ue_t *sgwc_ue, char *apn);
 sgwc_sess_t *sgwc_sess_find_by_ebi(sgwc_ue_t *sgwc_ue, uint8_t ebi);
-sgwc_sess_t *sgwc_sess_cycle(sgwc_sess_t *sess);
 sgwc_sess_t *sgwc_sess_find_by_id(ogs_pool_id_t id);
 
 #define SGWC_SESSION_SYNC_DONE(__sGWC, __tYPE, __fLAGS) \
@@ -175,7 +174,6 @@ sgwc_bearer_t *sgwc_bearer_find_by_sess_ebi(
 sgwc_bearer_t *sgwc_bearer_find_by_ue_ebi(
                                 sgwc_ue_t *sgwc_ue, uint8_t ebi);
 sgwc_bearer_t *sgwc_default_bearer_in_sess(sgwc_sess_t *sess);
-sgwc_bearer_t *sgwc_bearer_cycle(sgwc_bearer_t *bearer);
 sgwc_bearer_t *sgwc_bearer_find_by_id(ogs_pool_id_t id);
 
 sgwc_tunnel_t *sgwc_tunnel_add(

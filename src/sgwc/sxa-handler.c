@@ -62,12 +62,24 @@ static uint8_t gtp_cause_from_pfcp(uint8_t pfcp_cause)
 
 static void sess_timeout(ogs_gtp_xact_t *xact, void *data)
 {
-    sgwc_sess_t *sess = data;
+    sgwc_sess_t *sess = NULL;
+    ogs_pool_id_t sess_id = OGS_INVALID_POOL_ID;
     sgwc_ue_t *sgwc_ue = NULL;
     uint8_t type = 0;
 
     ogs_assert(xact);
-    ogs_assert(sess);
+    type = xact->seq[0].type;
+
+    ogs_assert(data);
+    sess_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(sess_id >= OGS_MIN_POOL_ID && sess_id <= OGS_MAX_POOL_ID);
+
+    sess = sgwc_sess_find_by_id(sess_id);
+    if (!sess) {
+        ogs_error("Session has already been removed [%d]", type);
+        return;
+    }
+
     sgwc_ue = sess->sgwc_ue;
     ogs_assert(sgwc_ue);
 
@@ -76,11 +88,6 @@ static void sess_timeout(ogs_gtp_xact_t *xact, void *data)
     switch (type) {
     case OGS_GTP2_CREATE_SESSION_REQUEST_TYPE:
         ogs_error("[%s] No Create Session Response", sgwc_ue->imsi_bcd);
-        if (!sgwc_sess_cycle(sess)) {
-            ogs_warn("[%s] Session has already been removed",
-                    sgwc_ue->imsi_bcd);
-            break;
-        }
         ogs_assert(OGS_OK ==
             sgwc_pfcp_send_session_deletion_request(sess, NULL, NULL));
         break;
@@ -92,27 +99,33 @@ static void sess_timeout(ogs_gtp_xact_t *xact, void *data)
 
 static void bearer_timeout(ogs_gtp_xact_t *xact, void *data)
 {
-    sgwc_bearer_t *bearer = data;
+    sgwc_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     sgwc_sess_t *sess = NULL;
     sgwc_ue_t *sgwc_ue = NULL;
     uint8_t type = 0;
 
     ogs_assert(xact);
-    ogs_assert(bearer);
+    type = xact->seq[0].type;
+
+    ogs_assert(data);
+    bearer_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
+
+    bearer = sgwc_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed [%d]", type);
+        return;
+    }
+
     sess = bearer->sess;
     ogs_assert(sess);
     sgwc_ue = sess->sgwc_ue;
     ogs_assert(sgwc_ue);
 
-    type = xact->seq[0].type;
-
     switch (type) {
     case OGS_GTP2_CREATE_BEARER_REQUEST_TYPE:
         ogs_error("[%s] No Create Bearer Response", sgwc_ue->imsi_bcd);
-        if (!sgwc_bearer_cycle(bearer)) {
-            ogs_warn("[%s] Bearer has already been removed", sgwc_ue->imsi_bcd);
-            break;
-        }
         ogs_assert(OGS_OK ==
             sgwc_pfcp_send_bearer_modification_request(
                 bearer, NULL, NULL,
@@ -383,7 +396,8 @@ void sgwc_sxa_handle_session_establishment_response(
 
         ogs_assert(sess->gnode);
         s5c_xact = ogs_gtp_xact_local_create(
-                sess->gnode, &send_message.h, pkbuf, sess_timeout, sess);
+                sess->gnode, &send_message.h, pkbuf, sess_timeout,
+                OGS_UINT_TO_POINTER(sess->id));
         if (!s5c_xact) {
             ogs_error("ogs_gtp_xact_local_create() failed");
             return;
@@ -427,7 +441,8 @@ void sgwc_sxa_handle_session_establishment_response(
 
         ogs_assert(sess->gnode);
         s5c_xact = ogs_gtp_xact_local_create(
-                sess->gnode, &recv_message->h, pkbuf, sess_timeout, sess);
+                sess->gnode, &recv_message->h, pkbuf, sess_timeout,
+                OGS_UINT_TO_POINTER(sess->id));
         if (!s5c_xact) {
             ogs_error("ogs_gtp_xact_local_create() failed");
             return;
@@ -780,7 +795,8 @@ void sgwc_sxa_handle_session_modification_response(
             ogs_assert(sgwc_ue->gnode);
             ogs_assert(bearer);
             s11_xact = ogs_gtp_xact_local_create(sgwc_ue->gnode,
-                    &recv_message->h, pkbuf, bearer_timeout, bearer);
+                    &recv_message->h, pkbuf, bearer_timeout,
+                    OGS_UINT_TO_POINTER(bearer->id));
             if (!s11_xact) {
                 ogs_error("ogs_gtp_xact_local_create() failed");
                 return;
@@ -1094,7 +1110,7 @@ void sgwc_sxa_handle_session_modification_response(
                     ogs_assert(sess->gnode);
                     s5c_xact = ogs_gtp_xact_local_create(
                             sess->gnode, &recv_message->h, pkbuf,
-                            sess_timeout, sess);
+                            sess_timeout, OGS_UINT_TO_POINTER(sess->id));
                     if (!s5c_xact) {
                         ogs_error("ogs_gtp_xact_local_create() failed");
                         return;
@@ -1377,10 +1393,7 @@ void sgwc_sxa_handle_session_deletion_response(
     }
 
 cleanup:
-    if (sgwc_sess_cycle(sess))
-        sgwc_sess_remove(sess);
-    else
-        ogs_error("Session has already been removed");
+    sgwc_sess_remove(sess);
 }
 
 void sgwc_sxa_handle_session_report_request(

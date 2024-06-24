@@ -24,19 +24,29 @@
 
 static void bearer_timeout(ogs_gtp_xact_t *xact, void *data)
 {
-    sgwc_bearer_t *bearer = data;
+    sgwc_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     sgwc_sess_t *sess = NULL;
     sgwc_ue_t *sgwc_ue = NULL;
     uint8_t type = 0;
 
     ogs_assert(xact);
-    ogs_assert(bearer);
+    type = xact->seq[0].type;
+
+    ogs_assert(data);
+    bearer_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
+
+    bearer = sgwc_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed [%d]", type);
+        return;
+    }
+
     sess = bearer->sess;
     ogs_assert(sess);
     sgwc_ue = sess->sgwc_ue;
     ogs_assert(sgwc_ue);
-
-    type = xact->seq[0].type;
 
     switch (type) {
     case OGS_GTP2_UPDATE_BEARER_REQUEST_TYPE:
@@ -44,11 +54,6 @@ static void bearer_timeout(ogs_gtp_xact_t *xact, void *data)
         break;
     case OGS_GTP2_DELETE_BEARER_REQUEST_TYPE:
         ogs_error("[%s] No Delete Bearer Response", sgwc_ue->imsi_bcd);
-        if (!sgwc_bearer_cycle(bearer)) {
-            ogs_error("[%s] Bearer has already been removed",
-                    sgwc_ue->imsi_bcd);
-            break;
-        }
         ogs_assert(OGS_OK ==
             sgwc_pfcp_send_bearer_modification_request(
                 bearer, NULL, NULL, OGS_PFCP_MODIFY_REMOVE));
@@ -728,7 +733,8 @@ void sgwc_s5c_handle_update_bearer_request(
     s11_xact = ogs_gtp_xact_find_by_id(s5c_xact->assoc_xact_id);
     if (!s11_xact) {
         s11_xact = ogs_gtp_xact_local_create(
-                sgwc_ue->gnode, &message->h, pkbuf, bearer_timeout, bearer);
+                sgwc_ue->gnode, &message->h, pkbuf, bearer_timeout,
+                OGS_UINT_TO_POINTER(bearer->id));
         if (!s11_xact) {
             ogs_error("ogs_gtp_xact_local_create() failed");
             return;
@@ -883,7 +889,8 @@ void sgwc_s5c_handle_delete_bearer_request(
         * 2. MME sends Delete Bearer Response(DEDICATED BEARER) to SGW/SMF.
         */
         s11_xact = ogs_gtp_xact_local_create(
-                sgwc_ue->gnode, &message->h, pkbuf, bearer_timeout, bearer);
+                sgwc_ue->gnode, &message->h, pkbuf, bearer_timeout,
+                OGS_UINT_TO_POINTER(bearer->id));
         if (!s11_xact) {
             ogs_error("ogs_gtp_xact_local_create() failed");
             return;

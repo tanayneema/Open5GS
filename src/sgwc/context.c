@@ -505,11 +505,6 @@ sgwc_sess_t *sgwc_sess_find_by_ebi(sgwc_ue_t *sgwc_ue, uint8_t ebi)
     return NULL;
 }
 
-sgwc_sess_t *sgwc_sess_cycle(sgwc_sess_t *sess)
-{
-    return ogs_pool_cycle(&sgwc_sess_pool, sess);
-}
-
 sgwc_sess_t *sgwc_sess_find_by_id(ogs_pool_id_t id)
 {
     return ogs_pool_find_by_id(&sgwc_sess_pool, id);
@@ -623,11 +618,6 @@ sgwc_bearer_t *sgwc_default_bearer_in_sess(sgwc_sess_t *sess)
 {
     ogs_assert(sess);
     return ogs_list_first(&sess->bearer_list);
-}
-
-sgwc_bearer_t *sgwc_bearer_cycle(sgwc_bearer_t *bearer)
-{
-    return ogs_pool_cycle(&sgwc_bearer_pool, bearer);
 }
 
 sgwc_bearer_t *sgwc_bearer_find_by_id(ogs_pool_id_t id)

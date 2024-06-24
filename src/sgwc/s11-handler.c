@@ -24,25 +24,30 @@
 
 static void gtp_sess_timeout(ogs_gtp_xact_t *xact, void *data)
 {
-    sgwc_sess_t *sess = data;
+    sgwc_sess_t *sess = NULL;
+    ogs_pool_id_t sess_id = OGS_INVALID_POOL_ID;
     sgwc_ue_t *sgwc_ue = NULL;
     uint8_t type = 0;
 
     ogs_assert(xact);
-    ogs_assert(sess);
+    type = xact->seq[0].type;
+
+    ogs_assert(data);
+    sess_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(sess_id >= OGS_MIN_POOL_ID && sess_id <= OGS_MAX_POOL_ID);
+
+    sess = sgwc_sess_find_by_id(sess_id);
+    if (!sess) {
+        ogs_error("Session has already been removed [%d]", type);
+        return;
+    }
+
     sgwc_ue = sess->sgwc_ue;
     ogs_assert(sgwc_ue);
-
-    type = xact->seq[0].type;
 
     switch (type) {
     case OGS_GTP2_DELETE_SESSION_REQUEST_TYPE:
         ogs_error("[%s] No Delete Session Response", sgwc_ue->imsi_bcd);
-        if (!sgwc_sess_cycle(sess)) {
-            ogs_error("[%s] Session has already been removed",
-                    sgwc_ue->imsi_bcd);
-            break;
-        }
         ogs_assert(OGS_OK ==
             sgwc_pfcp_send_session_deletion_request(sess, NULL, NULL));
         break;
@@ -54,19 +59,29 @@ static void gtp_sess_timeout(ogs_gtp_xact_t *xact, void *data)
 
 static void gtp_bearer_timeout(ogs_gtp_xact_t *xact, void *data)
 {
-    sgwc_bearer_t *bearer = data;
+    sgwc_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     sgwc_sess_t *sess = NULL;
     sgwc_ue_t *sgwc_ue = NULL;
     uint8_t type = 0;
 
     ogs_assert(xact);
-    ogs_assert(bearer);
+    type = xact->seq[0].type;
+
+    ogs_assert(data);
+    bearer_id = OGS_POINTER_TO_UINT(data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID && bearer_id <= OGS_MAX_POOL_ID);
+
+    bearer = sgwc_bearer_find_by_id(bearer_id);
+    if (!bearer) {
+        ogs_error("Bearer has already been removed [%d]", type);
+        return;
+    }
+
     sess = bearer->sess;
     ogs_assert(sess);
     sgwc_ue = sess->sgwc_ue;
     ogs_assert(sgwc_ue);
-
-    type = xact->seq[0].type;
 
     ogs_error("GTP Timeout : IMSI[%s] Message-Type[%d]",
             sgwc_ue->imsi_bcd, type);
@@ -670,7 +685,8 @@ void sgwc_s11_handle_delete_session_request(
         }
 
         s5c_xact = ogs_gtp_xact_local_create(
-                sess->gnode, &message->h, gtpbuf, gtp_sess_timeout, sess);
+                sess->gnode, &message->h, gtpbuf, gtp_sess_timeout,
+                OGS_UINT_TO_POINTER(sess->id));
         if (!s5c_xact) {
             ogs_error("ogs_gtp_xact_local_create() failed");
             return;
@@ -695,6 +711,7 @@ void sgwc_s11_handle_create_bearer_response(
 
     sgwc_sess_t *sess = NULL;
     sgwc_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     sgwc_tunnel_t *dl_tunnel = NULL, *ul_tunnel = NULL;
     ogs_pfcp_far_t *far = NULL;
 
@@ -718,13 +735,25 @@ void sgwc_s11_handle_create_bearer_response(
     s5c_xact = ogs_gtp_xact_find_by_id(s11_xact->assoc_xact_id);
     ogs_assert(s5c_xact);
 
-    if (s11_xact->xid & OGS_GTP_CMD_XACT_ID)
+    if (s11_xact->xid & OGS_GTP_CMD_XACT_ID) {
         /* MME received Bearer Resource Modification Request */
-        bearer = s5c_xact->data;
-    else
-        bearer = s11_xact->data;
+        ogs_assert(s5c_xact->data);
+        bearer_id = OGS_POINTER_TO_UINT(s5c_xact->data);
+        ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+                bearer_id <= OGS_MAX_POOL_ID);
 
-    ogs_assert(bearer);
+        bearer = sgwc_bearer_find_by_id(bearer_id);
+        ogs_assert(bearer);
+    } else {
+        ogs_assert(s11_xact->data);
+        bearer_id = OGS_POINTER_TO_UINT(s11_xact->data);
+        ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+                bearer_id <= OGS_MAX_POOL_ID);
+
+        bearer = sgwc_bearer_find_by_id(bearer_id);
+        ogs_assert(bearer);
+    }
+
     sess = bearer->sess;
     ogs_assert(sess);
 
@@ -882,6 +911,7 @@ void sgwc_s11_handle_update_bearer_response(
     ogs_gtp_xact_t *s5c_xact = NULL;
     sgwc_sess_t *sess = NULL;
     sgwc_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     ogs_gtp2_update_bearer_response_t *rsp = NULL;
 
     ogs_assert(sgwc_ue);
@@ -898,13 +928,25 @@ void sgwc_s11_handle_update_bearer_response(
     s5c_xact = ogs_gtp_xact_find_by_id(s11_xact->assoc_xact_id);
     ogs_assert(s5c_xact);
 
-    if (s11_xact->xid & OGS_GTP_CMD_XACT_ID)
+    if (s11_xact->xid & OGS_GTP_CMD_XACT_ID) {
         /* MME received Bearer Resource Modification Request */
-        bearer = s5c_xact->data;
-    else
-        bearer = s11_xact->data;
+        ogs_assert(s5c_xact->data);
+        bearer_id = OGS_POINTER_TO_UINT(s5c_xact->data);
+        ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+                bearer_id <= OGS_MAX_POOL_ID);
 
-    ogs_assert(bearer);
+        bearer = sgwc_bearer_find_by_id(bearer_id);
+        ogs_assert(bearer);
+    } else {
+        ogs_assert(s11_xact->data);
+        bearer_id = OGS_POINTER_TO_UINT(s11_xact->data);
+        ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+                bearer_id <= OGS_MAX_POOL_ID);
+
+        bearer = sgwc_bearer_find_by_id(bearer_id);
+        ogs_assert(bearer);
+    }
+
     sess = bearer->sess;
     ogs_assert(sess);
 
@@ -1005,6 +1047,7 @@ void sgwc_s11_handle_delete_bearer_response(
 
     sgwc_sess_t *sess = NULL;
     sgwc_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     ogs_gtp2_delete_bearer_response_t *rsp = NULL;
 
     ogs_assert(sgwc_ue);
@@ -1021,13 +1064,25 @@ void sgwc_s11_handle_delete_bearer_response(
     s5c_xact = ogs_gtp_xact_find_by_id(s11_xact->assoc_xact_id);
     ogs_assert(s5c_xact);
 
-    if (s11_xact->xid & OGS_GTP_CMD_XACT_ID)
+    if (s11_xact->xid & OGS_GTP_CMD_XACT_ID) {
         /* MME received Bearer Resource Modification Request */
-        bearer = s5c_xact->data;
-    else
-        bearer = s11_xact->data;
+        ogs_assert(s5c_xact->data);
+        bearer_id = OGS_POINTER_TO_UINT(s5c_xact->data);
+        ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+                bearer_id <= OGS_MAX_POOL_ID);
 
-    ogs_assert(bearer);
+        bearer = sgwc_bearer_find_by_id(bearer_id);
+        ogs_assert(bearer);
+    } else {
+        ogs_assert(s11_xact->data);
+        bearer_id = OGS_POINTER_TO_UINT(s11_xact->data);
+        ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+                bearer_id <= OGS_MAX_POOL_ID);
+
+        bearer = sgwc_bearer_find_by_id(bearer_id);
+        ogs_assert(bearer);
+    }
+
     sess = bearer->sess;
     ogs_assert(sess);
 
@@ -1179,6 +1234,7 @@ void sgwc_s11_handle_downlink_data_notification_ack(
     uint8_t cause_value;
 
     sgwc_bearer_t *bearer = NULL;
+    ogs_pool_id_t bearer_id = OGS_INVALID_POOL_ID;
     sgwc_sess_t *sess = NULL;
 
     ogs_gtp2_downlink_data_notification_acknowledge_t *ack = NULL;
@@ -1191,7 +1247,12 @@ void sgwc_s11_handle_downlink_data_notification_ack(
      * Check Transaction
      ********************/
     ogs_assert(s11_xact);
-    bearer = s11_xact->data;
+    ogs_assert(s11_xact->data);
+    bearer_id = OGS_POINTER_TO_UINT(s11_xact->data);
+    ogs_assert(bearer_id >= OGS_MIN_POOL_ID &&
+            bearer_id <= OGS_MAX_POOL_ID);
+
+    bearer = sgwc_bearer_find_by_id(bearer_id);
     ogs_assert(bearer);
     sess = bearer->sess;
     ogs_assert(sess);
@@ -1512,7 +1573,8 @@ void sgwc_s11_handle_bearer_resource_command(
     }
 
     s5c_xact = ogs_gtp_xact_local_create(
-            sess->gnode, &message->h, pkbuf, gtp_bearer_timeout, bearer);
+            sess->gnode, &message->h, pkbuf, gtp_bearer_timeout,
+            OGS_UINT_TO_POINTER(bearer->id));
     if (!s5c_xact) {
         ogs_error("ogs_gtp_xact_local_create() failed");
         return;

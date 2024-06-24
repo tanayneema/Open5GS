@@ -56,7 +56,7 @@ static void bearer_timeout(ogs_gtp_xact_t *xact, void *data)
         ogs_error("[%s] No Delete Bearer Response", sgwc_ue->imsi_bcd);
         ogs_assert(OGS_OK ==
             sgwc_pfcp_send_bearer_modification_request(
-                bearer, NULL, NULL, OGS_PFCP_MODIFY_REMOVE));
+                bearer, OGS_INVALID_POOL_ID, NULL, OGS_PFCP_MODIFY_REMOVE));
         break;
     default:
         ogs_error("GTP Timeout : IMSI[%s] Message-Type[%d]",
@@ -285,7 +285,7 @@ void sgwc_s5c_handle_create_session_response(
 
     ogs_assert(OGS_OK ==
         sgwc_pfcp_send_session_modification_request(
-            sess, s11_xact, gtpbuf,
+            sess, s11_xact->id, gtpbuf,
             OGS_PFCP_MODIFY_UL_ONLY|OGS_PFCP_MODIFY_ACTIVATE));
 }
 
@@ -523,7 +523,7 @@ void sgwc_s5c_handle_delete_session_response(
      * 2. SMF sends Delete Session Response to SGW/MME.
      */
     ogs_assert(OGS_OK ==
-        sgwc_pfcp_send_session_deletion_request(sess, s11_xact, gtpbuf));
+        sgwc_pfcp_send_session_deletion_request(sess, s11_xact->id, gtpbuf));
 }
 
 void sgwc_s5c_handle_create_bearer_request(
@@ -642,7 +642,7 @@ void sgwc_s5c_handle_create_bearer_request(
 
     ogs_assert(OGS_OK ==
         sgwc_pfcp_send_bearer_modification_request(
-            bearer, s5c_xact, gtpbuf,
+            bearer, s5c_xact->id, gtpbuf,
             OGS_PFCP_MODIFY_UL_ONLY|OGS_PFCP_MODIFY_CREATE));
 }
 

@@ -243,7 +243,7 @@ int sgwc_pfcp_send_bearer_to_modify_list(
 }
 
 int sgwc_pfcp_send_session_establishment_request(
-        sgwc_sess_t *sess, ogs_gtp_xact_t *gtp_xact, ogs_pkbuf_t *gtpbuf,
+        sgwc_sess_t *sess, ogs_pool_id_t gtp_xact_id, ogs_pkbuf_t *gtpbuf,
         uint64_t flags)
 {
     int rv;
@@ -259,7 +259,7 @@ int sgwc_pfcp_send_session_establishment_request(
         return OGS_ERROR;
     }
 
-    xact->assoc_xact = gtp_xact;
+    xact->assoc_xact_id = gtp_xact_id;
     if (gtpbuf) {
         xact->gtpbuf = ogs_pkbuf_copy(gtpbuf);
         if (!xact->gtpbuf) {
@@ -323,7 +323,7 @@ int sgwc_pfcp_send_session_establishment_request(
 }
 
 int sgwc_pfcp_send_session_modification_request(
-        sgwc_sess_t *sess, ogs_gtp_xact_t *gtp_xact,
+        sgwc_sess_t *sess, ogs_pool_id_t gtp_xact_id,
         ogs_pkbuf_t *gtpbuf, uint64_t flags)
 {
     ogs_pfcp_xact_t *xact = NULL;
@@ -337,7 +337,7 @@ int sgwc_pfcp_send_session_modification_request(
         return OGS_ERROR;
     }
 
-    xact->assoc_xact = gtp_xact;
+    xact->assoc_xact_id = gtp_xact_id;
     xact->modify_flags = flags | OGS_PFCP_MODIFY_SESSION;
     if (gtpbuf) {
         xact->gtpbuf = ogs_pkbuf_copy(gtpbuf);
@@ -355,7 +355,7 @@ int sgwc_pfcp_send_session_modification_request(
 }
 
 int sgwc_pfcp_send_bearer_modification_request(
-        sgwc_bearer_t *bearer, ogs_gtp_xact_t *gtp_xact,
+        sgwc_bearer_t *bearer, ogs_pool_id_t gtp_xact_id,
         ogs_pkbuf_t *gtpbuf, uint64_t flags)
 {
     int rv;
@@ -374,7 +374,7 @@ int sgwc_pfcp_send_bearer_modification_request(
         return OGS_ERROR;
     }
 
-    xact->assoc_xact = gtp_xact;
+    xact->assoc_xact_id = gtp_xact_id;
     xact->modify_flags = flags;
     if (gtpbuf) {
         xact->gtpbuf = ogs_pkbuf_copy(gtpbuf);
@@ -410,7 +410,7 @@ int sgwc_pfcp_send_bearer_modification_request(
 }
 
 int sgwc_pfcp_send_session_deletion_request(
-        sgwc_sess_t *sess, ogs_gtp_xact_t *gtp_xact, ogs_pkbuf_t *gtpbuf)
+        sgwc_sess_t *sess, ogs_pool_id_t gtp_xact_id, ogs_pkbuf_t *gtpbuf)
 {
     int rv;
     ogs_pkbuf_t *sxabuf = NULL;
@@ -425,7 +425,7 @@ int sgwc_pfcp_send_session_deletion_request(
         return OGS_ERROR;
     }
 
-    xact->assoc_xact = gtp_xact;
+    xact->assoc_xact_id = gtp_xact_id;
     if (gtpbuf) {
         xact->gtpbuf = ogs_pkbuf_copy(gtpbuf);
         if (!xact->gtpbuf) {

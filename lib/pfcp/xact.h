@@ -70,7 +70,8 @@ typedef struct ogs_pfcp_xact_s {
     uint64_t        local_seid;     /**< Local SEID,
                                          expected in reply from peer */
 
-    void            *assoc_xact;    /**< Associated GTP transaction */
+    void            *assoc_xact;
+    ogs_pool_id_t   assoc_xact_id;  /**< Associated GTP transaction ID */
     ogs_pkbuf_t     *gtpbuf;        /**< GTP packet buffer */
 
     uint8_t         gtp_pti;        /**< GTP Procedure transaction identity */

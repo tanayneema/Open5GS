@@ -400,7 +400,7 @@ static void pfcp_restoration(ogs_pfcp_node_t *node)
                     sgwc_ue->imsi_bcd, sess->session.name);
                 ogs_assert(OGS_OK ==
                     sgwc_pfcp_send_session_establishment_request(
-                        sess, NULL, NULL,
+                        sess, OGS_INVALID_POOL_ID, NULL,
                         OGS_PFCP_CREATE_RESTORATION_INDICATION));
             }
         }

@@ -43,9 +43,9 @@ static void bearer_timeout(ogs_gtp_xact_t *xact, void *data)
         return;
     }
 
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
 
     switch (type) {
@@ -122,7 +122,7 @@ void sgwc_s5c_handle_create_session_response(
         ogs_error("No Context in TEID [Cause:%d]", session_cause);
         cause_value = OGS_GTP2_CAUSE_CONTEXT_NOT_FOUND;
     } else {
-        sgwc_ue = sess->sgwc_ue;
+        sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
         ogs_assert(sgwc_ue);
     }
 
@@ -341,7 +341,7 @@ void sgwc_s5c_handle_modify_bearer_response(
         ogs_error("No Context in TEID [Cause:%d]", session_cause);
         cause_value = OGS_GTP2_CAUSE_CONTEXT_NOT_FOUND;
     } else {
-        sgwc_ue = sess->sgwc_ue;
+        sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
         ogs_assert(sgwc_ue);
     }
 
@@ -481,7 +481,7 @@ void sgwc_s5c_handle_delete_session_response(
         ogs_error("No Context in TEID [Cause:%d]", session_cause);
         cause_value = OGS_GTP2_CAUSE_CONTEXT_NOT_FOUND;
     } else {
-        sgwc_ue = sess->sgwc_ue;
+        sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
         ogs_assert(sgwc_ue);
     }
 
@@ -561,7 +561,7 @@ void sgwc_s5c_handle_create_bearer_request(
         ogs_error("No Context in TEID");
         cause_value = OGS_GTP2_CAUSE_CONTEXT_NOT_FOUND;
     } else {
-        sgwc_ue = sess->sgwc_ue;
+        sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
         ogs_assert(sgwc_ue);
     }
 
@@ -678,7 +678,7 @@ void sgwc_s5c_handle_update_bearer_request(
         ogs_error("No Context in TEID");
         cause_value = OGS_GTP2_CAUSE_CONTEXT_NOT_FOUND;
     } else {
-        sgwc_ue = sess->sgwc_ue;
+        sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
         ogs_assert(sgwc_ue);
 
         if (req->bearer_contexts.presence == 0) {
@@ -789,7 +789,7 @@ void sgwc_s5c_handle_delete_bearer_request(
         ogs_error("No Context in TEID");
         cause_value = OGS_GTP2_CAUSE_CONTEXT_NOT_FOUND;
     } else {
-        sgwc_ue = sess->sgwc_ue;
+        sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
         ogs_assert(sgwc_ue);
 
         if (req->linked_eps_bearer_id.presence == 0 &&
@@ -948,7 +948,7 @@ void sgwc_s5c_handle_bearer_resource_failure_indication(
         ogs_error("No Context in TEID");
         cause_value = OGS_GTP2_CAUSE_CONTEXT_NOT_FOUND;
     } else {
-        sgwc_ue = sess->sgwc_ue;
+        sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
         ogs_assert(sgwc_ue);
     }
 

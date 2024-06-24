@@ -162,9 +162,9 @@ static void bearer_timeout(ogs_gtp_xact_t *xact, void *data)
         return;
     }
 
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
 
     switch (type) {
@@ -188,7 +188,7 @@ int sgwc_gtp_send_create_session_response(
     ogs_pkbuf_t *pkbuf = NULL;
 
     ogs_assert(sess);
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
     ogs_assert(xact);
 
@@ -229,9 +229,9 @@ int sgwc_gtp_send_downlink_data_notification(
 
     ogs_assert(bearer);
 
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
-    sgwc_ue = bearer->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(bearer->sgwc_ue_id);
     ogs_assert(sgwc_ue);
     ogs_assert(sgwc_ue->gnode);
 

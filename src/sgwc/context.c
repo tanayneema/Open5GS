@@ -331,7 +331,7 @@ sgwc_sess_t *sgwc_sess_add(sgwc_ue_t *sgwc_ue, char *apn)
     sess->session.name = ogs_strdup(apn);
     ogs_assert(sess->session.name);
 
-    sess->sgwc_ue = sgwc_ue;
+    sess->sgwc_ue_id = sgwc_ue->id;
 
     ogs_list_add(&sgwc_ue->sess_list, sess);
 
@@ -347,7 +347,7 @@ static bool compare_ue_info(ogs_pfcp_node_t *node, sgwc_sess_t *sess)
 
     ogs_assert(node);
     ogs_assert(sess);
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
 
     ogs_assert(sess->session.name);
@@ -433,7 +433,7 @@ int sgwc_sess_remove(sgwc_sess_t *sess)
     sgwc_ue_t *sgwc_ue = NULL;
 
     ogs_assert(sess);
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
 
     ogs_list_remove(&sgwc_ue->sess_list, sess);
@@ -500,7 +500,7 @@ sgwc_sess_t *sgwc_sess_find_by_ebi(sgwc_ue_t *sgwc_ue, uint8_t ebi)
 
     bearer = sgwc_bearer_find_by_ue_ebi(sgwc_ue, ebi);
     if (bearer)
-        return bearer->sess;
+        return sgwc_sess_find_by_id(bearer->sess_id);
 
     return NULL;
 }
@@ -543,14 +543,14 @@ sgwc_bearer_t *sgwc_bearer_add(sgwc_sess_t *sess)
     sgwc_ue_t *sgwc_ue = NULL;
 
     ogs_assert(sess);
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
 
     ogs_pool_id_calloc(&sgwc_bearer_pool, &bearer);
     ogs_assert(bearer);
 
-    bearer->sgwc_ue = sgwc_ue;
-    bearer->sess = sess;
+    bearer->sgwc_ue_id = sgwc_ue->id;
+    bearer->sess_id = sess->id;
 
     /* Downlink */
     tunnel = sgwc_tunnel_add(bearer, OGS_GTP2_F_TEID_S5_S8_SGW_GTP_U);
@@ -567,10 +567,13 @@ sgwc_bearer_t *sgwc_bearer_add(sgwc_sess_t *sess)
 
 int sgwc_bearer_remove(sgwc_bearer_t *bearer)
 {
-    ogs_assert(bearer);
-    ogs_assert(bearer->sess);
+    sgwc_sess_t *sess = NULL;
 
-    ogs_list_remove(&bearer->sess->bearer_list, bearer);
+    ogs_assert(bearer);
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
+    ogs_assert(sess);
+
+    ogs_list_remove(&sess->bearer_list, bearer);
 
     sgwc_tunnel_remove_all(bearer);
 
@@ -638,7 +641,7 @@ sgwc_tunnel_t *sgwc_tunnel_add(
     uint8_t dst_if = OGS_PFCP_INTERFACE_UNKNOWN;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     switch (interface_type) {
@@ -752,7 +755,7 @@ sgwc_tunnel_t *sgwc_tunnel_add(
     tunnel->pdr = pdr;
     tunnel->far = far;
 
-    tunnel->bearer = bearer;
+    tunnel->bearer_id = bearer->id;
 
     ogs_list_add(&bearer->tunnel_list, tunnel);
 
@@ -761,10 +764,13 @@ sgwc_tunnel_t *sgwc_tunnel_add(
 
 int sgwc_tunnel_remove(sgwc_tunnel_t *tunnel)
 {
-    ogs_assert(tunnel);
-    ogs_assert(tunnel->bearer);
+    sgwc_bearer_t *bearer = NULL;
 
-    ogs_list_remove(&tunnel->bearer->tunnel_list, tunnel);
+    ogs_assert(tunnel);
+    bearer = sgwc_bearer_find_by_id(tunnel->bearer_id);
+    ogs_assert(bearer);
+
+    ogs_list_remove(&bearer->tunnel_list, tunnel);
 
     ogs_pfcp_pdr_remove(tunnel->pdr);
     ogs_pfcp_far_remove(tunnel->far);

@@ -42,7 +42,7 @@ static void gtp_sess_timeout(ogs_gtp_xact_t *xact, void *data)
         return;
     }
 
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
 
     switch (type) {
@@ -78,9 +78,9 @@ static void gtp_bearer_timeout(ogs_gtp_xact_t *xact, void *data)
         return;
     }
 
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
-    sgwc_ue = sess->sgwc_ue;
+    sgwc_ue = sgwc_ue_find_by_id(sess->sgwc_ue_id);
     ogs_assert(sgwc_ue);
 
     ogs_error("GTP Timeout : IMSI[%s] Message-Type[%d]",
@@ -480,7 +480,7 @@ void sgwc_s11_handle_modify_bearer_request(
             break;
         }
 
-        sess = bearer->sess;
+        sess = sgwc_sess_find_by_id(bearer->sess_id);
         ogs_assert(sess);
 
         ogs_list_for_each_entry(&pfcp_xact_list, pfcp_xact, tmpnode) {
@@ -754,7 +754,7 @@ void sgwc_s11_handle_create_bearer_response(
         ogs_assert(bearer);
     }
 
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     rv = ogs_gtp_xact_commit(s11_xact);
@@ -947,7 +947,7 @@ void sgwc_s11_handle_update_bearer_response(
         ogs_assert(bearer);
     }
 
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     rv = ogs_gtp_xact_commit(s11_xact);
@@ -1083,7 +1083,7 @@ void sgwc_s11_handle_delete_bearer_response(
         ogs_assert(bearer);
     }
 
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     rv = ogs_gtp_xact_commit(s11_xact);
@@ -1254,7 +1254,7 @@ void sgwc_s11_handle_downlink_data_notification_ack(
 
     bearer = sgwc_bearer_find_by_id(bearer_id);
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     rv = ogs_gtp_xact_commit(s11_xact);
@@ -1553,7 +1553,7 @@ void sgwc_s11_handle_bearer_resource_command(
      * Check ALL Context
      ********************/
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
     ogs_assert(sess->gnode);
     ogs_assert(sgwc_ue);

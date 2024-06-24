@@ -365,7 +365,7 @@ int sgwc_pfcp_send_bearer_modification_request(
     sgwc_sess_t *sess = NULL;
 
     ogs_assert(bearer);
-    sess = bearer->sess;
+    sess = sgwc_sess_find_by_id(bearer->sess_id);
     ogs_assert(sess);
 
     xact = ogs_pfcp_xact_local_create(sess->pfcp_node, bearer_timeout, bearer);

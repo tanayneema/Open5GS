@@ -95,7 +95,7 @@ typedef struct sgwc_sess_s {
     ogs_gtp_node_t  *gnode;
     ogs_pfcp_node_t *pfcp_node;
 
-    sgwc_ue_t       *sgwc_ue;
+    ogs_pool_id_t   sgwc_ue_id;
 } sgwc_sess_t;
 
 typedef struct sgwc_bearer_s {
@@ -106,8 +106,8 @@ typedef struct sgwc_bearer_s {
     uint8_t         ebi;
 
     ogs_list_t      tunnel_list;
-    sgwc_sess_t     *sess;
-    sgwc_ue_t       *sgwc_ue;
+    ogs_pool_id_t   sess_id;
+    ogs_pool_id_t   sgwc_ue_id;
 } sgwc_bearer_t;
 
 typedef struct sgwc_tunnel_s {
@@ -127,7 +127,7 @@ typedef struct sgwc_tunnel_s {
     ogs_ip_t        remote_ip;
 
     /* Related Context */
-    sgwc_bearer_t   *bearer;
+    ogs_pool_id_t   bearer_id;
     ogs_gtp_node_t  *gnode;
 } sgwc_tunnel_t;
 
